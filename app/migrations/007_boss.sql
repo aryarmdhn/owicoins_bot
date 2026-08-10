@@ -1,0 +1,19 @@
+CREATE TABLE IF NOT EXISTS bosses (
+    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(255) NOT NULL,
+    max_hp BIGINT UNSIGNED NOT NULL,
+    hp BIGINT NOT NULL,
+    reward_pool BIGINT UNSIGNED NOT NULL,
+    status VARCHAR(16) NOT NULL DEFAULT 'active',
+    created_at DATETIME NOT NULL
+) ENGINE=InnoDB;
+
+CREATE TABLE IF NOT EXISTS boss_damage (
+    boss_id BIGINT UNSIGNED NOT NULL,
+    user_id BIGINT UNSIGNED NOT NULL,
+    damage BIGINT UNSIGNED NOT NULL DEFAULT 0,
+    last_hit_at DATETIME NULL,
+    PRIMARY KEY (boss_id, user_id),
+    FOREIGN KEY (boss_id) REFERENCES bosses(id),
+    FOREIGN KEY (user_id) REFERENCES users(id)
+) ENGINE=InnoDB
