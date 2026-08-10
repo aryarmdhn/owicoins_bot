@@ -2,6 +2,8 @@ services:
   mariadb:
     image: mariadb:11
     restart: unless-stopped
+    ports:
+      - "${DB_BIND_IP:-127.0.0.1}:3306:3306"
     environment:
       MARIADB_DATABASE: ${DB_DATABASE}
       MARIADB_USER: ${DB_USERNAME}
