@@ -36,11 +36,10 @@ export async function handleFight(interaction, [fightId, action]) {
       return;
     }
     await interaction.update({
-      content: `⚔️ duel accepted! <@${f.challenger.id}> vs <@${f.opponent.id}> — bet **${fmt(f.bet)} OwiCoins**\n🐾 both pick your fighter within **10s**!`,
+      content: `⚔️ duel accepted! <@${f.challenger.id}> vs <@${f.opponent.id}> — bet **${fmt(f.bet)} OwiCoins**\n🐾 both pick your fighter to begin!`,
       components: [pickMenu(id, "a", itemsA), pickMenu(id, "b", itemsB)],
       allowedMentions: { parse: [] },
     });
-    f.timer = setTimeout(() => finish(id), 10000);
     return;
   }
 
@@ -60,7 +59,6 @@ export async function handleFight(interaction, [fightId, action]) {
     f.picks[side] = { name: info.name, power: info.power };
     await interaction.reply({ content: `✅ you chose **${info.name}** (power ${fmt(info.power)})`, ephemeral: true });
     if (f.picks.a && f.picks.b) {
-      clearTimeout(f.timer);
       await finish(id);
     }
   }

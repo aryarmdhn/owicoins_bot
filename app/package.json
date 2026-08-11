@@ -12,7 +12,7 @@
     "migrate": "node src/db/migrate.js",
     "seed": "node src/db/seed.js",
     "reset": "node src/db/reset.js",
-    "admin": "node --env-file=.env src/admin.js"
+    "admin": "node --env-file-if-exists=.env src/admin.js"
   },
   "dependencies": {
     "@napi-rs/canvas": "^1.0.5",
