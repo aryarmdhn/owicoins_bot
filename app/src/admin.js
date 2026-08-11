@@ -153,6 +153,25 @@ async function menuBanner() {
   console.log(val ? `  ✓ banner set to ${val}` : "  ✓ banner disabled");
 }
 
+async function menuResetQuota() {
+  const user = await findUser("target");
+  if (!user) return;
+  console.log("  1. reset PRAY quota (today)   2. reset SEND quota (today)   3. reset BOTH   0. back");
+  const c = await ask("> ");
+  if (c === "0") return;
+  if (c === "1" || c === "3") {
+    await pool.query("UPDATE users SET pray_count = 0 WHERE id = ?", [user.id]);
+    console.log("  ✓ pray quota reset");
+  }
+  if (c === "2" || c === "3") {
+    const [r] = await pool.query(
+      "UPDATE economy_transactions SET type = 'send_reset' WHERE user_id = ? AND type = 'send' AND amount < 0 AND DATE(created_at) = CURDATE()",
+      [user.id]
+    );
+    console.log(`  ✓ send quota reset (${r.affectedRows} tx cleared)`);
+  }
+}
+
 async function main() {
   while (true) {
     console.log("\n========== OWICOINS ADMIN ==========");
@@ -162,6 +181,7 @@ async function main() {
     console.log("  4. Collectibles (CRUD)");
     console.log("  5. Limited Banner");
     console.log("  6. World Boss");
+    console.log("  7. Reset Send/Pray Quota");
     console.log("  0. Exit");
     const c = await ask("> ");
     if (c === "0") break;
@@ -171,6 +191,7 @@ async function main() {
     else if (c === "4") await menuCollectible();
     else if (c === "5") await menuBanner();
     else if (c === "6") await menuBoss();
+    else if (c === "7") await menuResetQuota();
     else console.log("! invalid choice");
   }
   rl.close();
