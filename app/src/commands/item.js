@@ -12,7 +12,7 @@ export async function execute(interaction) {
   }
 
   const [[c]] = await pool.query(
-    "SELECT name, description, rarity, category, base_value, power, image_url FROM collectibles WHERE name = ?",
+    "SELECT name, description, rarity, category, base_value, power, image_url FROM collectibles WHERE LOWER(name) = LOWER(?)",
     [name]
   );
   if (!c) {

@@ -23,7 +23,7 @@ export async function sell(discordId, username, itemName, qty) {
     await conn.beginTransaction();
     const user = await getOrCreate(discordId, username, conn);
 
-    const [[item]] = await conn.query("SELECT id, name, rarity FROM collectibles WHERE name = ?", [itemName]);
+    const [[item]] = await conn.query("SELECT id, name, rarity FROM collectibles WHERE LOWER(name) = LOWER(?)", [itemName]);
     if (!item) throw new NoSuchItem();
 
     const [[owned]] = await conn.query(

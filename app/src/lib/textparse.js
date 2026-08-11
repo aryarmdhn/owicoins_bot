@@ -20,8 +20,8 @@ const SCHEMA = {
     { name: "rarity", type: "str" },
     { name: "category", type: "str" },
   ],
-  item: [{ name: "collectible", type: "str" }],
-  fuse: [{ name: "collectible", type: "str" }],
+  item: [{ name: "collectible", type: "rest" }],
+  fuse: [{ name: "collectible", type: "rest" }],
   sell: [
     { name: "collectible", type: "str" },
     { name: "arg2", type: "str" },
@@ -54,6 +54,7 @@ export function commandNames() {
 }
 
 export function tokenize(str) {
+  str = str.replace(/[“”„]/g, '"').replace(/[‘’]/g, "'");
   const out = [];
   const re = /"([^"]*)"|(\S+)/g;
   let m;
@@ -75,6 +76,12 @@ export function parseArgs(name, tokens, message) {
     if (spec.type === "user") {
       values[spec.name] = mentions[mentionIdx++] ?? null;
       if (tokens[ti] && MENTION.test(tokens[ti])) ti++;
+      continue;
+    }
+    if (spec.type === "rest") {
+      const rest = tokens.slice(ti).join(" ").trim();
+      values[spec.name] = rest || null;
+      ti = tokens.length;
       continue;
     }
     const raw = tokens[ti++];

@@ -14,7 +14,7 @@ export async function fuse(discordId, username, itemName) {
     await conn.beginTransaction();
     const user = await getOrCreate(discordId, username, conn);
 
-    const [[item]] = await conn.query("SELECT id, name, rarity FROM collectibles WHERE name = ?", [itemName]);
+    const [[item]] = await conn.query("SELECT id, name, rarity FROM collectibles WHERE LOWER(name) = LOWER(?)", [itemName]);
     if (!item) throw new FusionError(`No collectible named "${itemName}".`);
 
     const target = nextTier(item.rarity);
