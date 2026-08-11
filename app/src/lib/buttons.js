@@ -1,6 +1,8 @@
 import { render as renderInventory } from "../commands/inventory.js";
 import { render as renderCollection } from "../commands/collection.js";
-import { confirms } from "../commands/trade.js";
+import { panel } from "../commands/trade.js";
+import * as tsess from "../services/tradesession.js";
+import { ModalBuilder, TextInputBuilder, TextInputStyle } from "discord.js";
 import { render as renderQuest } from "../commands/quest.js";
 import { claimAll } from "../services/quests.js";
 import { render as renderAch } from "../commands/achievements.js";
@@ -10,7 +12,6 @@ import { boardComponents, mineText } from "../commands/mine.js";
 import * as bjSvc from "../services/blackjack.js";
 import { render as renderBj, resultText as bjResult } from "../commands/bj.js";
 import { ActionRowBuilder, ButtonBuilder, ButtonStyle } from "discord.js";
-import * as tradeSvc from "../services/trade.js";
 import { fmt } from "./owo.js";
 import { handleFight } from "./fighthandler.js";
 import pool from "../db/pool.js";
@@ -23,8 +24,8 @@ export async function handleButton(interaction) {
     return;
   }
 
-  if (kind === "trade") {
-    await handleTrade(interaction, args);
+  if (kind === "ts") {
+    await handleTradeSession(interaction, args);
     return;
   }
 
@@ -60,48 +61,6 @@ export async function handleButton(interaction) {
         ? await renderInventory(interaction.user.id, ownerId, interaction.user.username, opts)
         : await renderCollection(ownerId, interaction.user.username, opts);
     await interaction.update(view);
-  }
-}
-
-async function handleTrade(interaction, [tradeId, action]) {
-  const id = Number(tradeId);
-  const [[t]] = await pool.query("SELECT sender_id, receiver_id, status FROM trades WHERE id = ?", [id]);
-  const [[me]] = await pool.query("SELECT id FROM users WHERE discord_id = ?", [interaction.user.id]);
-  if (!t || !me || (me.id !== t.sender_id && me.id !== t.receiver_id)) {
-    await interaction.reply({ content: "This isn't your trade.", ephemeral: true });
-    return;
-  }
-  if (t.status !== "pending" && t.status !== "confirmed") {
-    await interaction.update({ components: [] }).catch(() => {});
-    return;
-  }
-
-  if (action === "cancel") {
-    await tradeSvc.setStatus(id, "cancelled");
-    confirms.delete(id);
-    await interaction.update({ content: `❌ trade cancelled by **${interaction.user.username}**`, components: [] });
-    return;
-  }
-
-  const state = confirms.get(id) ?? { sender: false, receiver: false };
-  if (me.id === t.sender_id) state.sender = true;
-  else state.receiver = true;
-  confirms.set(id, state);
-
-  if (!(state.sender && state.receiver)) {
-    await interaction.reply({ content: "Confirmed. Waiting for the other party…", ephemeral: true });
-    return;
-  }
-
-  await tradeSvc.setStatus(id, "confirmed");
-  try {
-    await tradeSvc.execute(id);
-    confirms.delete(id);
-    await interaction.update({ content: "✅ **trade complete!** items & coins exchanged 🎉", components: [] });
-  } catch (e) {
-    confirms.delete(id);
-    const msg = e instanceof tradeSvc.TradeError ? e.message : "trade failed.";
-    await interaction.update({ content: `❌ ${msg}`, components: [] });
   }
 }
 
@@ -189,4 +148,98 @@ async function handleBlackjack(interaction, [ownerId, action]) {
     console.error("blackjack failed:", e);
     await interaction.reply({ content: "Something went wrong with the game.", ephemeral: true }).catch(() => {});
   }
+}
+
+async function handleTradeSession(interaction, args) {
+  const [id, action, sideKey] = args;
+  const s = tsess.sessions.get(Number(id));
+  if (!s || s.status !== "open") {
+    if (interaction.isRepliable()) await interaction.reply({ content: "This trade is no longer active.", ephemeral: true }).catch(() => {});
+    return;
+  }
+  const side = tsess.sideFor(s, interaction.user.id);
+  if (!side) {
+    await interaction.reply({ content: "You're not part of this trade.", ephemeral: true });
+    return;
+  }
+
+  // coins modal submit
+  if (interaction.isModalSubmit()) {
+    const val = Number(interaction.fields.getTextInputValue("coins"));
+    if (!Number.isInteger(val) || val < 0) {
+      await interaction.reply({ content: "Enter a valid non-negative number.", ephemeral: true });
+      return;
+    }
+    tsess.setCoins(s, interaction.user.id, val);
+    await s.message?.edit?.(panel(s)).catch(() => {});
+    await interaction.reply({ content: `✅ your coins set to ${val.toLocaleString()}`, ephemeral: true });
+    return;
+  }
+
+  // item picker
+  if (action === "pick") {
+    if ((sideKey === "a" && s.a.user.id !== interaction.user.id) || (sideKey === "b" && s.b.user.id !== interaction.user.id)) {
+      await interaction.reply({ content: "That's not your item picker.", ephemeral: true });
+      return;
+    }
+    const cid = Number(interaction.values[0]);
+    if (!cid) return void (await interaction.reply({ content: "No item.", ephemeral: true }));
+    const [[item]] = await pool.query("SELECT id, name, rarity FROM collectibles WHERE id = ?", [cid]);
+    const avail = await tsess.availableQty((await getUserId(interaction.user.id)), cid);
+    const cur = side.items.get(cid)?.qty ?? 0;
+    if (cur + 1 > avail) {
+      await interaction.reply({ content: `You only have ${avail} of that available (rest locked).`, ephemeral: true });
+      return;
+    }
+    tsess.addItem(s, interaction.user.id, item);
+    await interaction.update(panel(s));
+    return;
+  }
+
+  if (action === "coins") {
+    const modal = new ModalBuilder().setCustomId(`ts:${id}:coinsModal`).setTitle("Set your OwiCoins offer");
+    modal.addComponents(
+      new ActionRowBuilder().addComponents(
+        new TextInputBuilder().setCustomId("coins").setLabel("Amount (0 to remove)").setStyle(TextInputStyle.Short).setRequired(true)
+      )
+    );
+    await interaction.showModal(modal);
+    return;
+  }
+
+  if (action === "clear") {
+    side.items.clear();
+    tsess.setCoins(s, interaction.user.id, 0);
+    await interaction.update(panel(s));
+    return;
+  }
+
+  if (action === "cancel") {
+    s.status = "cancelled";
+    tsess.sessions.delete(s.id);
+    await interaction.update({ content: `❌ trade cancelled by **${interaction.user.username}**`, components: [] });
+    return;
+  }
+
+  if (action === "confirm") {
+    const both = tsess.confirm(s, interaction.user.id);
+    if (!both) {
+      await interaction.update(panel(s));
+      return;
+    }
+    try {
+      await tsess.execute(s);
+      await interaction.update({ content: "✅ **trade complete!** items & coins exchanged 🎉", components: [] });
+    } catch (e) {
+      const msg = e instanceof tsess.TradeError ? e.message : "trade failed.";
+      s.a.confirmed = false; s.b.confirmed = false;
+      await interaction.update({ content: `❌ ${msg}`, ...panel(s) });
+    }
+    return;
+  }
+}
+
+async function getUserId(discordId) {
+  const [[u]] = await pool.query("SELECT id FROM users WHERE discord_id = ?", [discordId]);
+  return u?.id;
 }

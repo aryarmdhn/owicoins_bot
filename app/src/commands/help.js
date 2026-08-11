@@ -17,7 +17,7 @@ const HELP = [
   "`gsell \"<item>\" <qty>` — sell for OwiCoins 💸",
   "`gsell all [tier]` — sell everything / tier & below 🧹",
   "`gleaderboard <richest|collection|value|level|fighter>` — top players 🏆",
-  '`gtrade @user "<item>" <qty> <coins> "<item>" <qty> <coins>` — trade 🤝',
+  "`gtrade @user` — trade items & coins (interactive) 🤝",
   "`gfight @user <bet>` — duel for OwiCoins ⚔️",
   "`gstats [@user]` — fight stats 📊",
   "`gachievements` — view & claim rewards 🏅",

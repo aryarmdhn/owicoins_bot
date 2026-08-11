@@ -27,15 +27,7 @@ const SCHEMA = {
     { name: "arg2", type: "str" },
   ],
   leaderboard: [{ name: "type", type: "str" }],
-  trade: [
-    { name: "user", type: "user" },
-    { name: "offer_item", type: "str" },
-    { name: "offer_qty", type: "int" },
-    { name: "offer_coins", type: "int" },
-    { name: "request_item", type: "str" },
-    { name: "request_qty", type: "int" },
-    { name: "request_coins", type: "int" },
-  ],
+  trade: [{ name: "user", type: "user" }],
   fight: [
     { name: "user", type: "user" },
     { name: "bet", type: "int" },

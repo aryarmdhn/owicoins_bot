@@ -27,7 +27,7 @@ client.once(Events.ClientReady, (c) => {
 
 client.on(Events.InteractionCreate, async (interaction) => {
   try {
-    if (interaction.isButton() || interaction.isStringSelectMenu()) await handleButton(interaction);
+    if (interaction.isButton() || interaction.isStringSelectMenu() || interaction.isModalSubmit()) await handleButton(interaction);
   } catch (err) {
     console.error("interaction failed:", err);
     if (interaction.isRepliable() && !interaction.replied) {

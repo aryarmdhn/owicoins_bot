@@ -54,10 +54,8 @@ assert.deepEqual(parseArgs("sell", ["all"], noMentions), { collectible: "all", a
 
 const user = { id: "42" };
 const withMention = { mentions: { users: new Map([["42", user]]) } };
-const t = parseArgs("trade", ["<@42>", "Neon Cat", "1", "0", "Fire Fox", "1", "500"], withMention);
+const t = parseArgs("trade", ["<@42>"], withMention);
 assert.equal(t.user, user);
-assert.equal(t.offer_item, "Neon Cat");
-assert.equal(t.request_coins, 500);
 
 assert.equal(fightWinnerIsA(100, 100, () => 0.4), true);
 assert.equal(fightWinnerIsA(100, 100, () => 0.6), false);
