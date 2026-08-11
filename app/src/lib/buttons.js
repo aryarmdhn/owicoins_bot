@@ -5,6 +5,11 @@ import { render as renderQuest } from "../commands/quest.js";
 import { claimAll } from "../services/quests.js";
 import { render as renderAch } from "../commands/achievements.js";
 import { claimReady } from "../services/achievements.js";
+import * as mineSvc from "../services/mine.js";
+import { boardComponents, statusText } from "../commands/mine.js";
+import * as bjSvc from "../services/blackjack.js";
+import { render as renderBj, resultText as bjResult } from "../commands/bj.js";
+import { ActionRowBuilder, ButtonBuilder, ButtonStyle } from "discord.js";
 import * as tradeSvc from "../services/trade.js";
 import { fmt } from "./owo.js";
 import { handleFight } from "./fighthandler.js";
@@ -30,6 +35,16 @@ export async function handleButton(interaction) {
 
   if (kind === "ach") {
     await handleAchievement(interaction, args);
+    return;
+  }
+
+  if (kind === "mine") {
+    await handleMine(interaction, args);
+    return;
+  }
+
+  if (kind === "bj") {
+    await handleBlackjack(interaction, args);
     return;
   }
 
@@ -110,4 +125,71 @@ async function handleAchievement(interaction, [ownerId]) {
   const note = claimed.length ? `🎉 claimed **${claimed.length}**! +**${fmt(total)}** OwiCoins` : "";
   const view = await renderAch(interaction.user.id, interaction.user.username, note);
   await interaction.update(view);
+}
+
+async function handleMine(interaction, [ownerId, action]) {
+  if (interaction.user.id !== ownerId) {
+    await interaction.reply({ content: "This isn't your game.", ephemeral: true });
+    return;
+  }
+  const g = mineSvc.games.get(ownerId);
+
+  if (action === "cash") {
+    try {
+      const r = await mineSvc.cashout(ownerId);
+      await interaction.update({
+        content: `💰 <@${ownerId}> cashed out **${r.revealed}** gems at **×${r.mult.toFixed(2)}** → **+${fmt(r.payout)} OwiCoins**!\n💰 balance: **${fmt(r.balance)}**`,
+        components: [],
+        allowedMentions: { parse: [] },
+      });
+    } catch {
+      await interaction.reply({ content: "No active game.", ephemeral: true });
+    }
+    return;
+  }
+
+  const idx = Number(action);
+  if (!g) return void (await interaction.reply({ content: "No active game.", ephemeral: true }));
+  const res = mineSvc.reveal(ownerId, idx);
+
+  if (res.boom) {
+    await interaction.update({
+      content: `💥 <@${ownerId}> hit a mine and lost **${fmt(res.g.bet)} OwiCoins**!`,
+      components: boardComponents(ownerId, res.g, { reveal: true }),
+      allowedMentions: { parse: [] },
+    });
+    return;
+  }
+
+  if (res.cleared) {
+    const win = await mineSvc.autoWin(res.g);
+    await interaction.update({
+      content: `🏆 <@${ownerId}> cleared the whole board! **+${fmt(win.payout)} OwiCoins**!\n💰 balance: **${fmt(win.balance)}**`,
+      components: boardComponents(ownerId, res.g, { reveal: true }),
+      allowedMentions: { parse: [] },
+    });
+    return;
+  }
+
+  const cashRow = new ActionRowBuilder().addComponents(
+    new ButtonBuilder().setCustomId(`mine:${ownerId}:cash`).setLabel("💰 Cash Out").setStyle(ButtonStyle.Primary).setDisabled(res.g.revealed.size === 0)
+  );
+  await interaction.update({ content: statusText(res.g), components: [...boardComponents(ownerId, res.g), cashRow] });
+}
+
+async function handleBlackjack(interaction, [ownerId, action]) {
+  if (interaction.user.id !== ownerId) {
+    await interaction.reply({ content: "This isn't your game.", ephemeral: true });
+    return;
+  }
+  try {
+    const res = action === "hit" ? bjSvc.hit(ownerId) : await bjSvc.stand(ownerId);
+    if (res.done) {
+      await interaction.update(renderBj(ownerId, res.g, { hideDealer: false, result: bjResult(res) }));
+    } else {
+      await interaction.update(renderBj(ownerId, res.g));
+    }
+  } catch {
+    await interaction.reply({ content: "No active game.", ephemeral: true });
+  }
 }

@@ -26,6 +26,8 @@ const HELP = [
   "`gcf <bet|all> [h|t]` — 50/50 flip (side optional) 🪙",
   "`gdice <bet|all>` — roll vs house 🎲",
   "`gslots <bet|all>` — spin the slots 🎰",
+  "`gmine <bet|all>` — minesweeper cash-out 💣",
+  "`gbj <bet|all>` — blackjack vs dealer 🃏",
   "`gspin` — daily lucky wheel 🎡",
   "`gpray` / `gluck` — pray for a luck blessing 🙏",
   "`gprofile [@user]` — view profile 👤",

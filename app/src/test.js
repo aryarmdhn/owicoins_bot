@@ -84,7 +84,15 @@ assert.equal(nextTier("Mythic"), "Immortal");
 assert.equal(nextTier("Immortal"), null);
 assert.equal(nextTier("bogus"), null);
 
-const { coinflip, diceRoll, slots } = await import("./lib/rules.js");
+const { coinflip, diceRoll, slots, mineMultiplier, handValue, isBlackjack } = await import("./lib/rules.js");
+assert.equal(mineMultiplier(20, 4, 0), 1);
+assert.ok(mineMultiplier(20, 4, 1) > 1);
+assert.ok(mineMultiplier(20, 4, 5) > mineMultiplier(20, 4, 3));
+assert.equal(handValue([1, 13]), 21); // Ace + King = 21
+assert.equal(handValue([1, 1, 9]), 21); // A+A+9 = 11+1+9
+assert.equal(handValue([13, 12, 5]), 25); // K+Q+5 bust
+assert.equal(isBlackjack([1, 10]), true);
+assert.equal(isBlackjack([1, 5, 5]), false);
 assert.deepEqual(coinflip("heads", 100, () => 0.1), { result: "heads", win: true, payout: 200 });
 assert.deepEqual(coinflip("heads", 100, () => 0.9), { result: "tails", win: false, payout: 0 });
 

@@ -83,6 +83,32 @@ export function slots(bet, rand = Math.random, luck = 1) {
   return { reels, payout: Math.floor(bet * mult), mult };
 }
 
+// --- minesweeper gamble ---
+// fair multiplier after revealing k safe tiles from `total` with `mines`, minus house edge
+export function mineMultiplier(total, mines, revealed, edge = 0.04) {
+  const safe = total - mines;
+  if (revealed <= 0) return 1;
+  let m = 1;
+  for (let i = 0; i < revealed; i++) m *= (safe - i) / (total - i);
+  return Math.max(1, ((1 - edge) / m));
+}
+
+// --- blackjack ---
+export function handValue(cards) {
+  let total = 0;
+  let aces = 0;
+  for (const c of cards) {
+    if (c === 1) { aces++; total += 11; }
+    else total += Math.min(c, 10);
+  }
+  while (total > 21 && aces > 0) { total -= 10; aces--; }
+  return total;
+}
+
+export function isBlackjack(cards) {
+  return cards.length === 2 && handValue(cards) === 21;
+}
+
 export function fightWinnerIsA(powerA, powerB, rand = Math.random) {
   const total = powerA + powerB;
   if (total <= 0) return rand() < 0.5;

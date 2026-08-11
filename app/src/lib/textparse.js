@@ -50,6 +50,8 @@ const SCHEMA = {
   ],
   dice: [{ name: "bet", type: "str" }],
   slots: [{ name: "bet", type: "str" }],
+  mine: [{ name: "bet", type: "str" }],
+  bj: [{ name: "bet", type: "str" }],
   spin: [],
   pray: [],
   luck: [],
