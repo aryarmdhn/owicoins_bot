@@ -18,7 +18,7 @@ export function boardComponents(discordId, g, { reveal = false } = {}) {
       const btn = new ButtonBuilder().setCustomId(`mine:${discordId}:${idx}`);
       if (reveal && isMine) btn.setLabel("💣").setStyle(ButtonStyle.Danger).setDisabled(true);
       else if (reveal && isStar) btn.setLabel("🌟").setStyle(ButtonStyle.Success).setDisabled(true);
-      else if (reveal) btn.setLabel(opened ? "💎" : "◾").setStyle(opened ? ButtonStyle.Success : ButtonStyle.Secondary).setDisabled(true);
+      else if (reveal) btn.setLabel("💎").setStyle(opened ? ButtonStyle.Success : ButtonStyle.Secondary).setDisabled(true);
       else if (opened && isStar) btn.setLabel("🌟").setStyle(ButtonStyle.Success).setDisabled(true);
       else if (opened) btn.setLabel("💎").setStyle(ButtonStyle.Success).setDisabled(true);
       else btn.setLabel("\u200b").setStyle(ButtonStyle.Secondary).setDisabled(g.over);
