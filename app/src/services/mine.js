@@ -55,6 +55,7 @@ export function reveal(discordId, idx) {
 
   if (g.mines.has(idx)) {
     g.over = true;
+    g.boomIdx = idx;
     games.delete(discordId);
     return { g, boom: true };
   }
