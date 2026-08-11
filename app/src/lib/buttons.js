@@ -175,13 +175,18 @@ async function handleBlackjack(interaction, [ownerId, action]) {
     return;
   }
   try {
-    const res = action === "hit" ? bjSvc.hit(ownerId) : await bjSvc.stand(ownerId);
+    const res = action === "hit" ? await bjSvc.hit(ownerId) : await bjSvc.stand(ownerId);
     if (res.done) {
       await interaction.update(renderBj(ownerId, res.g, { hideDealer: false, result: bjResult(res), outcome: res.outcome }));
     } else {
       await interaction.update(renderBj(ownerId, res.g));
     }
-  } catch {
-    await interaction.reply({ content: "No active game.", ephemeral: true });
+  } catch (e) {
+    if (e instanceof bjSvc.BjError) {
+      await interaction.reply({ content: "No active game.", ephemeral: true }).catch(() => {});
+      return;
+    }
+    console.error("blackjack failed:", e);
+    await interaction.reply({ content: "Something went wrong with the game.", ephemeral: true }).catch(() => {});
   }
 }

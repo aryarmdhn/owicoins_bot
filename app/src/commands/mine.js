@@ -21,7 +21,7 @@ export function boardComponents(discordId, g, { reveal = false } = {}) {
       else if (reveal) btn.setLabel("💎").setStyle(opened ? ButtonStyle.Success : ButtonStyle.Secondary).setDisabled(true);
       else if (opened && isStar) btn.setLabel("🌟").setStyle(ButtonStyle.Success).setDisabled(true);
       else if (opened) btn.setLabel("💎").setStyle(ButtonStyle.Success).setDisabled(true);
-      else btn.setLabel("\u200b").setStyle(ButtonStyle.Secondary).setDisabled(g.over);
+      else btn.setLabel(`${idx + 1}`).setStyle(ButtonStyle.Secondary).setDisabled(g.over);
       row.addComponents(btn);
     }
     rows.push(row);

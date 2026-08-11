@@ -27,7 +27,7 @@ export async function start(discordId, username, bet) {
   return { g, done: false };
 }
 
-export function hit(discordId) {
+export async function hit(discordId) {
   const g = games.get(discordId);
   if (!g || g.over) throw new BjError("No active game.");
   g.player.push(drawCard());
