@@ -22,7 +22,7 @@ const HELP = [
   "`gstats [@user]` — fight stats 📊",
   "`gachievements` — view & claim rewards 🏅",
   "`gquest` — daily quests & rewards 📋",
-  "`gsend @user <amount>` — send OwiCoins 💸",
+  "`gsend @user <amount>` — send OwiCoins (3×/day, max 100k) 💸",
   "`gcf <bet|all> [h|t]` — 50/50 flip (side optional) 🪙",
   "`gdice <bet|all>` — roll vs house 🎲",
   "`gslots <bet|all>` — spin the slots 🎰",

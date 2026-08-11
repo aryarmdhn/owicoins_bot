@@ -1,4 +1,4 @@
-import { send, SendError, InsufficientFunds } from "../services/send.js";
+import { send, SendError, SendLimit, InsufficientFunds } from "../services/send.js";
 import { say, fmt } from "../lib/owo.js";
 
 export const data = { name: "send" };
@@ -14,10 +14,14 @@ export async function execute(interaction) {
   }
   try {
     const r = await send(u, target, amount);
-    await say(interaction, `💸 <@${u.id}> sent **${fmt(amount)}** OwiCoins to <@${target.id}>!\n💰 your balance: **${fmt(r.balance)}**`, ["💰"]);
+    await say(interaction, `💸 <@${u.id}> sent **${fmt(amount)}** OwiCoins to <@${target.id}>!\n💰 your balance: **${fmt(r.balance)}**\n_📤 sends left today: ${r.sendsLeft}/3 · ${fmt(r.totalLeft)} OwiCoins left_`, ["💰"]);
   } catch (e) {
     if (e instanceof InsufficientFunds) {
       await say(interaction, `😔 <@${u.id}> not enough OwiCoins! you have **${fmt(e.balance)}**`);
+      return;
+    }
+    if (e instanceof SendLimit) {
+      await say(interaction, `⏳ <@${u.id}> ${e.message}`);
       return;
     }
     if (e instanceof SendError) {
