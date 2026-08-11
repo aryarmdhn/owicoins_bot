@@ -36,7 +36,10 @@ export async function handleFight(interaction, [fightId, action]) {
       return;
     }
     await interaction.update({
-      content: `⚔️ duel accepted! <@${f.challenger.id}> vs <@${f.opponent.id}> — bet **${fmt(f.bet)} OwiCoins**\n🐾 both pick your fighter to begin!`,
+      content:
+        `⚔️ **DUEL** · <@${f.challenger.id}> vs <@${f.opponent.id}> · bet **${fmt(f.bet)} OwiCoins**\n` +
+        `🐾 each of you, pick your fighter below!\n` +
+        `_higher power = better odds, but **not** a sure win — the stronger fighter can still lose!_`,
       components: [pickMenu(id, "a", itemsA), pickMenu(id, "b", itemsB)],
       allowedMentions: { parse: [] },
     });
@@ -57,23 +60,33 @@ export async function handleFight(interaction, [fightId, action]) {
       return;
     }
     f.picks[side] = { name: info.name, power: info.power };
-    await interaction.reply({ content: `✅ you chose **${info.name}** (power ${fmt(info.power)})`, ephemeral: true });
-    if (f.picks.a && f.picks.b) {
+    await interaction.reply({ content: `✅ you sent out **${info.name}** (⚔️ ${fmt(info.power)} power)! waiting for your opponent…`, ephemeral: true });
+
+    const aReady = !!f.picks.a;
+    const bReady = !!f.picks.b;
+    if (aReady && bReady) {
       await finish(id);
+    } else {
+      await f.message?.edit?.({
+        content:
+          `⚔️ **DUEL** · <@${f.challenger.id}> ${aReady ? "✅ ready" : "⏳ choosing…"} vs ${bReady ? "✅ ready" : "⏳ choosing…"} <@${f.opponent.id}>\n` +
+          `bet **${fmt(f.bet)} OwiCoins** · waiting for both fighters…`,
+        allowedMentions: { parse: [] },
+      }).catch(() => {});
     }
   }
 }
 
 function pickMenu(id, side, items) {
   const options = items.slice(0, 25).map((c) => ({
-    label: `${c.name} · ⚔️${c.power}`,
-    description: `${c.rarity} · ×${c.quantity} owned`,
+    label: `${c.name} — ⚔️ ${c.power} power`,
+    description: `${c.rarity} · higher power = better odds`,
     value: String(c.id),
   }));
   return new ActionRowBuilder().addComponents(
     new StringSelectMenuBuilder()
       .setCustomId(`fight:${id}:pick:${side}`)
-      .setPlaceholder(`fighter #${side.toUpperCase()}`)
+      .setPlaceholder(`${side === "a" ? "Challenger" : "Opponent"} — choose your fighter`)
       .addOptions(options)
   );
 }
@@ -94,12 +107,19 @@ async function finish(id) {
     return;
   }
 
+  const total = pa + pb;
+  const oddsA = total > 0 ? Math.round((pa / total) * 100) : 50;
+  const oddsB = 100 - oddsA;
+
   const { winner, aWins } = await svc.resolve(f.challenger, f.opponent, f.bet, pa, pb);
   fights.delete(id);
+
+  const upset = (aWins && pa < pb) || (!aWins && pb < pa);
   const text =
     `⚔️ **DUEL RESULT**\n` +
-    `${aWins ? "👑" : "💀"} ${na} (${fmt(pa)}) — <@${f.challenger.id}>\n` +
-    `${aWins ? "💀" : "👑"} ${nb} (${fmt(pb)}) — <@${f.opponent.id}>\n` +
+    `${aWins ? "👑" : "💀"} **${na}** ⚔️${fmt(pa)} · ${oddsA}% odds — <@${f.challenger.id}>\n` +
+    `${aWins ? "💀" : "👑"} **${nb}** ⚔️${fmt(pb)} · ${oddsB}% odds — <@${f.opponent.id}>\n` +
+    (upset ? `😱 **UPSET!** the underdog pulled it off!\n` : "") +
     `🏆 <@${winner.id}> wins **+${fmt(f.bet)} OwiCoins**! 🎉`;
   await f.message?.edit?.({ content: text, components: [], allowedMentions: { parse: [] } }).catch(() => {});
 }

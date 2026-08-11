@@ -36,7 +36,10 @@ export async function execute(interaction) {
     new ButtonBuilder().setCustomId(`fight:${id}:reject`).setLabel("Reject").setStyle(ButtonStyle.Danger)
   );
   await interaction.reply({
-    content: `⚔️ <@${opponent.id}>, **${u.username}** challenges you to a duel for **${fmt(bet)}** OwiCoins!\nonly <@${opponent.id}> can respond · expires in 60s`,
+    content:
+      `⚔️ <@${opponent.id}>, **${u.username}** challenges you to a **pet duel** for **${fmt(bet)} OwiCoins**!\n` +
+      `both will pick a fighter — higher power wins more often, but it's never a sure thing.\n` +
+      `_only <@${opponent.id}> can respond · expires in 60s_`,
     components: [row],
   });
 }
