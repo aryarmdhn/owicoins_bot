@@ -1,4 +1,4 @@
-import { ActionRowBuilder, ButtonBuilder, ButtonStyle } from "discord.js";
+import { EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle } from "discord.js";
 import { start, multiplierOf, games, TOTAL, COLS, MineError } from "../services/mine.js";
 import { resolveBet, BetError } from "../services/gamble.js";
 import { say, fmt } from "../lib/owo.js";
@@ -29,14 +29,27 @@ export function boardComponents(discordId, g, { reveal = false } = {}) {
   return rows;
 }
 
-export function statusText(g) {
+export function mineEmbed(g, { note = null, color = 0x5865f2 } = {}) {
   const mult = multiplierOf(g).toFixed(2);
   const potential = Math.floor(g.bet * multiplierOf(g));
-  return (
-    `💣 **MINES** · bet **${fmt(g.bet)}** · ${g.mineCount} mines\n` +
-    `💎 revealed: **${g.revealed.size}** · multiplier: **×${mult}** · cash out: **${fmt(potential)} OwiCoins**\n` +
-    `_tap tiles to reveal gems — one mine and you lose it all!_`
-  );
+  const e = new EmbedBuilder()
+    .setColor(color)
+    .setTitle("💣 Mines")
+    .addFields(
+      { name: "Bet", value: `${fmt(g.bet)} OwiCoins`, inline: true },
+      { name: "Mines", value: `${g.mineCount}`, inline: true },
+      { name: "💎 Revealed", value: `${g.revealed.size}`, inline: true },
+      { name: "Multiplier", value: `×${mult}`, inline: true },
+      { name: "Cash Out", value: `${fmt(potential)} OwiCoins`, inline: true }
+    )
+    .setFooter({ text: "one mine and you lose it all!" });
+  if (note) e.setDescription(note);
+  return e;
+}
+
+// legacy text (unused now but kept for safety)
+export function statusText(g) {
+  return `💣 Mines · bet ${fmt(g.bet)} · ×${multiplierOf(g).toFixed(2)}`;
 }
 
 export async function execute(interaction) {
@@ -48,7 +61,7 @@ export async function execute(interaction) {
     const row = new ActionRowBuilder().addComponents(
       new ButtonBuilder().setCustomId(`mine:${u.id}:cash`).setLabel("💰 Cash Out").setStyle(ButtonStyle.Primary).setDisabled(true)
     );
-    await interaction.reply({ content: statusText(g), components: [...boardComponents(u.id, g), row] });
+    await interaction.reply({ embeds: [mineEmbed(g)], components: [...boardComponents(u.id, g), row] });
   } catch (e) {
     if (e instanceof MineError || e instanceof BetError) return void (await say(interaction, `❌ <@${u.id}> ${e.message}`));
     throw e;

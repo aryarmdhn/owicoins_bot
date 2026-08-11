@@ -9,7 +9,7 @@ export class BjError extends Error {}
 export const games = new Map(); // key: discordId
 const MAX_BET = 1_000_000;
 
-const drawCard = () => 1 + Math.floor(Math.random() * 13); // 1=Ace .. 13=King
+const drawCard = () => ({ rank: 1 + Math.floor(Math.random() * 13), suit: Math.floor(Math.random() * 4) }); // 1=Ace..13=King, suit 0-3
 
 export async function start(discordId, username, bet) {
   if (!Number.isInteger(bet) || bet <= 0) throw new BjError("Bet must be a positive number or `all`.");

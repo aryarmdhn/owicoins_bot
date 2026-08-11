@@ -6,7 +6,7 @@ import { claimAll } from "../services/quests.js";
 import { render as renderAch } from "../commands/achievements.js";
 import { claimReady } from "../services/achievements.js";
 import * as mineSvc from "../services/mine.js";
-import { boardComponents, statusText } from "../commands/mine.js";
+import { boardComponents, mineEmbed } from "../commands/mine.js";
 import * as bjSvc from "../services/blackjack.js";
 import { render as renderBj, resultText as bjResult } from "../commands/bj.js";
 import { ActionRowBuilder, ButtonBuilder, ButtonStyle } from "discord.js";
@@ -137,11 +137,8 @@ async function handleMine(interaction, [ownerId, action]) {
   if (action === "cash") {
     try {
       const r = await mineSvc.cashout(ownerId);
-      await interaction.update({
-        content: `💰 <@${ownerId}> cashed out **${r.revealed}** gems at **×${r.mult.toFixed(2)}** → **+${fmt(r.payout)} OwiCoins**!\n💰 balance: **${fmt(r.balance)}**`,
-        components: boardComponents(ownerId, g, { reveal: true }),
-        allowedMentions: { parse: [] },
-      });
+      const e = mineEmbed(g, { note: `💰 <@${ownerId}> cashed out **${r.revealed}** gems at **×${r.mult.toFixed(2)}** → **+${fmt(r.payout)} OwiCoins**!\n💰 balance: **${fmt(r.balance)}**`, color: 0x57f287 });
+      await interaction.update({ embeds: [e], components: boardComponents(ownerId, g, { reveal: true }), allowedMentions: { parse: [] } });
     } catch {
       await interaction.reply({ content: "No active game.", ephemeral: true });
     }
@@ -153,29 +150,23 @@ async function handleMine(interaction, [ownerId, action]) {
   const res = mineSvc.reveal(ownerId, idx);
 
   if (res.boom) {
-    await interaction.update({
-      content: `💥 <@${ownerId}> hit a mine and lost **${fmt(res.g.bet)} OwiCoins**!`,
-      components: boardComponents(ownerId, res.g, { reveal: true }),
-      allowedMentions: { parse: [] },
-    });
+    const e = mineEmbed(res.g, { note: `💥 <@${ownerId}> hit a mine and lost **${fmt(res.g.bet)} OwiCoins**!`, color: 0xed4245 });
+    await interaction.update({ embeds: [e], components: boardComponents(ownerId, res.g, { reveal: true }), allowedMentions: { parse: [] } });
     return;
   }
 
   if (res.cleared) {
     const win = await mineSvc.autoWin(res.g);
-    await interaction.update({
-      content: `🏆 <@${ownerId}> cleared the whole board! **+${fmt(win.payout)} OwiCoins**!\n💰 balance: **${fmt(win.balance)}**`,
-      components: boardComponents(ownerId, res.g, { reveal: true }),
-      allowedMentions: { parse: [] },
-    });
+    const e = mineEmbed(res.g, { note: `🏆 <@${ownerId}> cleared the whole board! **+${fmt(win.payout)} OwiCoins**!\n💰 balance: **${fmt(win.balance)}**`, color: 0x57f287 });
+    await interaction.update({ embeds: [e], components: boardComponents(ownerId, res.g, { reveal: true }), allowedMentions: { parse: [] } });
     return;
   }
 
   const cashRow = new ActionRowBuilder().addComponents(
     new ButtonBuilder().setCustomId(`mine:${ownerId}:cash`).setLabel("💰 Cash Out").setStyle(ButtonStyle.Primary).setDisabled(res.g.revealed.size === 0)
   );
-  const starBanner = res.star ? `🌟✨ **LUCKY STAR!** your multiplier is boosted **×${res.starMult}**! ✨🌟\n` : "";
-  await interaction.update({ content: starBanner + statusText(res.g), components: [...boardComponents(ownerId, res.g), cashRow] });
+  const note = res.star ? `🌟✨ **LUCKY STAR!** multiplier boosted **×${res.starMult}**! ✨🌟` : null;
+  await interaction.update({ embeds: [mineEmbed(res.g, { note })], components: [...boardComponents(ownerId, res.g), cashRow] });
 }
 
 async function handleBlackjack(interaction, [ownerId, action]) {
@@ -186,7 +177,7 @@ async function handleBlackjack(interaction, [ownerId, action]) {
   try {
     const res = action === "hit" ? bjSvc.hit(ownerId) : await bjSvc.stand(ownerId);
     if (res.done) {
-      await interaction.update(renderBj(ownerId, res.g, { hideDealer: false, result: bjResult(res) }));
+      await interaction.update(renderBj(ownerId, res.g, { hideDealer: false, result: bjResult(res), outcome: res.outcome }));
     } else {
       await interaction.update(renderBj(ownerId, res.g));
     }

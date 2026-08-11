@@ -97,7 +97,8 @@ export function mineMultiplier(total, mines, revealed, edge = 0.02) {
 export function handValue(cards) {
   let total = 0;
   let aces = 0;
-  for (const c of cards) {
+  for (const card of cards) {
+    const c = typeof card === "object" ? card.rank : card;
     if (c === 1) { aces++; total += 11; }
     else total += Math.min(c, 10);
   }
