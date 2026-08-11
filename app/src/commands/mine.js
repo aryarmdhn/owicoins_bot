@@ -1,4 +1,4 @@
-import { EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle } from "discord.js";
+import { ActionRowBuilder, ButtonBuilder, ButtonStyle } from "discord.js";
 import { start, multiplierOf, games, TOTAL, COLS, MineError } from "../services/mine.js";
 import { resolveBet, BetError } from "../services/gamble.js";
 import { say, fmt } from "../lib/owo.js";
@@ -16,12 +16,11 @@ export function boardComponents(discordId, g, { reveal = false } = {}) {
       const isMine = g.mines.has(idx);
       const isStar = g.star === idx;
       const btn = new ButtonBuilder().setCustomId(`mine:${discordId}:${idx}`);
-      if (reveal && isMine) btn.setLabel("💣").setStyle(g.boomIdx === idx ? ButtonStyle.Danger : ButtonStyle.Secondary).setDisabled(true);
-      else if (reveal && isStar) btn.setLabel("🌟").setStyle(opened ? ButtonStyle.Success : ButtonStyle.Secondary).setDisabled(true);
-      else if (reveal) btn.setLabel("💎").setStyle(opened ? ButtonStyle.Success : ButtonStyle.Secondary).setDisabled(true);
-      else if (opened && isStar) btn.setLabel("🌟").setStyle(ButtonStyle.Success).setDisabled(true);
-      else if (opened) btn.setLabel("💎").setStyle(ButtonStyle.Success).setDisabled(true);
-      else btn.setLabel(`${idx + 1}`).setStyle(ButtonStyle.Secondary).setDisabled(g.over);
+      if (reveal && isMine) btn.setEmoji(g.boomIdx === idx ? "💥" : "💣").setStyle(g.boomIdx === idx ? ButtonStyle.Danger : ButtonStyle.Secondary).setDisabled(true);
+      else if ((reveal || opened) && isStar) btn.setEmoji("🌟").setStyle(ButtonStyle.Success).setDisabled(true);
+      else if (opened) btn.setEmoji("💎").setStyle(ButtonStyle.Success).setDisabled(true);
+      else if (reveal) btn.setEmoji("💎").setStyle(ButtonStyle.Secondary).setDisabled(true);
+      else btn.setLabel("\u200b").setStyle(ButtonStyle.Secondary).setDisabled(g.over);
       row.addComponents(btn);
     }
     rows.push(row);
@@ -29,27 +28,13 @@ export function boardComponents(discordId, g, { reveal = false } = {}) {
   return rows;
 }
 
-export function mineEmbed(g, { note = null, color = 0x5865f2 } = {}) {
+export function mineText(g, { note = null } = {}) {
   const mult = multiplierOf(g).toFixed(2);
   const potential = Math.floor(g.bet * multiplierOf(g));
-  const e = new EmbedBuilder()
-    .setColor(color)
-    .setTitle("💣 Mines")
-    .addFields(
-      { name: "Bet", value: `${fmt(g.bet)} OwiCoins`, inline: true },
-      { name: "Mines", value: `${g.mineCount}`, inline: true },
-      { name: "💎 Revealed", value: `${g.revealed.size}`, inline: true },
-      { name: "Multiplier", value: `×${mult}`, inline: true },
-      { name: "Cash Out", value: `${fmt(potential)} OwiCoins`, inline: true }
-    )
-    .setFooter({ text: "one mine and you lose it all!" });
-  if (note) e.setDescription(note);
-  return e;
-}
-
-// legacy text (unused now but kept for safety)
-export function statusText(g) {
-  return `💣 Mines · bet ${fmt(g.bet)} · ×${multiplierOf(g).toFixed(2)}`;
+  const head =
+    `💣 **MINES** · bet **${fmt(g.bet)} OwiCoins** · ${g.mineCount} mines\n` +
+    `💎 revealed **${g.revealed.size}** · **×${mult}** · cash out **${fmt(potential)} OwiCoins**`;
+  return (note ? `${note}\n` : "") + head;
 }
 
 export async function execute(interaction) {
@@ -61,7 +46,7 @@ export async function execute(interaction) {
     const row = new ActionRowBuilder().addComponents(
       new ButtonBuilder().setCustomId(`mine:${u.id}:cash`).setLabel("💰 Cash Out").setStyle(ButtonStyle.Primary).setDisabled(true)
     );
-    await interaction.reply({ embeds: [mineEmbed(g)], components: [...boardComponents(u.id, g), row] });
+    await interaction.reply({ content: mineText(g), components: [...boardComponents(u.id, g), row] });
   } catch (e) {
     if (e instanceof MineError || e instanceof BetError) return void (await say(interaction, `❌ <@${u.id}> ${e.message}`));
     throw e;

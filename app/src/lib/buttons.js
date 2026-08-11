@@ -6,7 +6,7 @@ import { claimAll } from "../services/quests.js";
 import { render as renderAch } from "../commands/achievements.js";
 import { claimReady } from "../services/achievements.js";
 import * as mineSvc from "../services/mine.js";
-import { boardComponents, mineEmbed } from "../commands/mine.js";
+import { boardComponents, mineText } from "../commands/mine.js";
 import * as bjSvc from "../services/blackjack.js";
 import { render as renderBj, resultText as bjResult } from "../commands/bj.js";
 import { ActionRowBuilder, ButtonBuilder, ButtonStyle } from "discord.js";
@@ -137,8 +137,8 @@ async function handleMine(interaction, [ownerId, action]) {
   if (action === "cash") {
     try {
       const r = await mineSvc.cashout(ownerId);
-      const e = mineEmbed(g, { note: `💰 <@${ownerId}> cashed out **${r.revealed}** gems at **×${r.mult.toFixed(2)}** → **+${fmt(r.payout)} OwiCoins**!\n💰 balance: **${fmt(r.balance)}**`, color: 0x57f287 });
-      await interaction.update({ embeds: [e], components: boardComponents(ownerId, g, { reveal: true }), allowedMentions: { parse: [] } });
+      const t = mineText(g, { note: `💰 <@${ownerId}> cashed out **${r.revealed}** gems at **×${r.mult.toFixed(2)}** → **+${fmt(r.payout)} OwiCoins**!\n💰 balance: **${fmt(r.balance)}**` });
+      await interaction.update({ content: t, components: boardComponents(ownerId, g, { reveal: true }), allowedMentions: { parse: [] } });
     } catch {
       await interaction.reply({ content: "No active game.", ephemeral: true });
     }
@@ -150,15 +150,15 @@ async function handleMine(interaction, [ownerId, action]) {
   const res = mineSvc.reveal(ownerId, idx);
 
   if (res.boom) {
-    const e = mineEmbed(res.g, { note: `💥 <@${ownerId}> hit a mine and lost **${fmt(res.g.bet)} OwiCoins**!`, color: 0xed4245 });
-    await interaction.update({ embeds: [e], components: boardComponents(ownerId, res.g, { reveal: true }), allowedMentions: { parse: [] } });
+    const t = mineText(res.g, { note: `💥 <@${ownerId}> hit a mine and lost **${fmt(res.g.bet)} OwiCoins**!` });
+    await interaction.update({ content: t, components: boardComponents(ownerId, res.g, { reveal: true }), allowedMentions: { parse: [] } });
     return;
   }
 
   if (res.cleared) {
     const win = await mineSvc.autoWin(res.g);
-    const e = mineEmbed(res.g, { note: `🏆 <@${ownerId}> cleared the whole board! **+${fmt(win.payout)} OwiCoins**!\n💰 balance: **${fmt(win.balance)}**`, color: 0x57f287 });
-    await interaction.update({ embeds: [e], components: boardComponents(ownerId, res.g, { reveal: true }), allowedMentions: { parse: [] } });
+    const t = mineText(res.g, { note: `🏆 <@${ownerId}> cleared the whole board! **+${fmt(win.payout)} OwiCoins**!\n💰 balance: **${fmt(win.balance)}**` });
+    await interaction.update({ content: t, components: boardComponents(ownerId, res.g, { reveal: true }), allowedMentions: { parse: [] } });
     return;
   }
 
@@ -166,7 +166,7 @@ async function handleMine(interaction, [ownerId, action]) {
     new ButtonBuilder().setCustomId(`mine:${ownerId}:cash`).setLabel("💰 Cash Out").setStyle(ButtonStyle.Primary).setDisabled(res.g.revealed.size === 0)
   );
   const note = res.star ? `🌟✨ **LUCKY STAR!** multiplier boosted **×${res.starMult}**! ✨🌟` : null;
-  await interaction.update({ embeds: [mineEmbed(res.g, { note })], components: [...boardComponents(ownerId, res.g), cashRow] });
+  await interaction.update({ content: mineText(res.g, { note }), components: [...boardComponents(ownerId, res.g), cashRow] });
 }
 
 async function handleBlackjack(interaction, [ownerId, action]) {
