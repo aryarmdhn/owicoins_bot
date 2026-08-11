@@ -1,5 +1,5 @@
 import { AttachmentBuilder } from "discord.js";
-import { play, BetError, InsufficientFunds } from "../services/gamble.js";
+import { play, resolveBet, BetError, InsufficientFunds } from "../services/gamble.js";
 import { diceRoll } from "../lib/rules.js";
 import { renderDiceGif } from "../lib/dicegif.js";
 import { say, fmt, sleep } from "../lib/owo.js";
@@ -8,7 +8,13 @@ export const data = { name: "dice" };
 
 export async function execute(interaction) {
   const u = interaction.user;
-  const bet = interaction.options.getInteger("bet");
+  let bet;
+  try {
+    bet = await resolveBet(u.id, u.username, interaction.options.getString("bet"));
+  } catch (e) {
+    if (e instanceof BetError) return void (await say(interaction, `❌ <@${u.id}> ${e.message}`));
+    throw e;
+  }
 
   let r;
   try {

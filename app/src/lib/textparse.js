@@ -45,12 +45,14 @@ const SCHEMA = {
     { name: "amount", type: "int" },
   ],
   cf: [
-    { name: "bet", type: "int" },
+    { name: "bet", type: "str" },
     { name: "side", type: "str" },
   ],
-  dice: [{ name: "bet", type: "int" }],
-  slots: [{ name: "bet", type: "int" }],
+  dice: [{ name: "bet", type: "str" }],
+  slots: [{ name: "bet", type: "str" }],
   spin: [],
+  pray: [],
+  luck: [],
 };
 
 export function commandNames() {

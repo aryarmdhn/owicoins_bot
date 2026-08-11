@@ -23,10 +23,11 @@ const HELP = [
   "`gachievements` — view & claim rewards 🏅",
   "`gquest` — daily quests & rewards 📋",
   "`gsend @user <amount>` — send OwiCoins 💸",
-  "`gcf <bet> [h|t]` — 50/50 flip (side optional) 🪙",
-  "`gdice <bet>` — roll vs house 🎲",
-  "`gslots <bet>` — spin the slots 🎰",
+  "`gcf <bet|all> [h|t]` — 50/50 flip (side optional) 🪙",
+  "`gdice <bet|all>` — roll vs house 🎲",
+  "`gslots <bet|all>` — spin the slots 🎰",
   "`gspin` — daily lucky wheel 🎡",
+  "`gpray` / `gluck` — pray for a luck blessing 🙏",
   "`gprofile [@user]` — view profile 👤",
 ].join("\n");
 

@@ -8,6 +8,18 @@ export class BetError extends Error {}
 
 const MAX_BET = 1_000_000;
 
+export async function resolveBet(discordId, username, raw) {
+  const user = await getOrCreate(discordId, username);
+  if (typeof raw === "string" && raw.toLowerCase() === "all") {
+    const bet = Math.min(Number(user.coins), MAX_BET);
+    if (bet <= 0) throw new BetError("You have no OwiCoins to bet.");
+    return bet;
+  }
+  const n = Number(raw);
+  if (!Number.isInteger(n) || n <= 0) throw new BetError("Bet must be a positive number or `all`.");
+  return n;
+}
+
 export async function play(discordId, username, bet, type, resolver) {
   if (!Number.isInteger(bet) || bet <= 0) throw new BetError("Bet must be a positive number.");
   if (bet > MAX_BET) throw new BetError(`Max bet is ${MAX_BET.toLocaleString()}.`);
