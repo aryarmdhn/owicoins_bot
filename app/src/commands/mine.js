@@ -1,5 +1,5 @@
 import { ActionRowBuilder, ButtonBuilder, ButtonStyle } from "discord.js";
-import { start, multiplierOf, games, TOTAL, MINES, COLS, MineError } from "../services/mine.js";
+import { start, multiplierOf, games, TOTAL, COLS, MineError } from "../services/mine.js";
 import { resolveBet, BetError } from "../services/gamble.js";
 import { say, fmt } from "../lib/owo.js";
 
@@ -14,8 +14,12 @@ export function boardComponents(discordId, g, { reveal = false } = {}) {
       const idx = r * COLS + c;
       const opened = g.revealed.has(idx);
       const isMine = g.mines.has(idx);
+      const isStar = g.star === idx;
       const btn = new ButtonBuilder().setCustomId(`mine:${discordId}:${idx}`);
       if (reveal && isMine) btn.setLabel("💣").setStyle(ButtonStyle.Danger).setDisabled(true);
+      else if (reveal && isStar) btn.setLabel("🌟").setStyle(ButtonStyle.Success).setDisabled(true);
+      else if (reveal) btn.setLabel(opened ? "💎" : "◾").setStyle(opened ? ButtonStyle.Success : ButtonStyle.Secondary).setDisabled(true);
+      else if (opened && isStar) btn.setLabel("🌟").setStyle(ButtonStyle.Success).setDisabled(true);
       else if (opened) btn.setLabel("💎").setStyle(ButtonStyle.Success).setDisabled(true);
       else btn.setLabel("\u200b").setStyle(ButtonStyle.Secondary).setDisabled(g.over);
       row.addComponents(btn);
@@ -29,7 +33,7 @@ export function statusText(g) {
   const mult = multiplierOf(g).toFixed(2);
   const potential = Math.floor(g.bet * multiplierOf(g));
   return (
-    `💣 **MINES** · bet **${fmt(g.bet)}** · ${MINES} mines\n` +
+    `💣 **MINES** · bet **${fmt(g.bet)}** · ${g.mineCount} mines\n` +
     `💎 revealed: **${g.revealed.size}** · multiplier: **×${mult}** · cash out: **${fmt(potential)} OwiCoins**\n` +
     `_tap tiles to reveal gems — one mine and you lose it all!_`
   );

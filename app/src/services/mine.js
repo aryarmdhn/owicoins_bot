@@ -7,10 +7,13 @@ export { InsufficientFunds };
 export class MineError extends Error {}
 
 export const games = new Map(); // key: discordId
-export const TOTAL = 20;
-export const MINES = 4;
-export const COLS = 5;
+export const TOTAL = 9;
+export const MINES_MIN = 2;
+export const MINES_MAX = 3;
+export const COLS = 3;
 const MAX_BET = 1_000_000;
+const STAR_CHANCE = 0.40; // chance a star exists on the board
+const STAR_MULT = 3; // multiplier bonus when you hit the star
 
 export async function start(discordId, username, bet) {
   if (!Number.isInteger(bet) || bet <= 0) throw new MineError("Bet must be a positive number or `all`.");
@@ -23,16 +26,26 @@ export async function start(discordId, username, bet) {
   // pay the bet up front (atomic + audited)
   await mutate(user.id, { type: "mine", amount: -bet, reference: `mine:${user.id}:${Date.now()}` });
 
+  const mineCount = MINES_MIN + Math.floor(Math.random() * (MINES_MAX - MINES_MIN + 1));
   const mines = new Set();
-  while (mines.size < MINES) mines.add(Math.floor(Math.random() * TOTAL));
+  while (mines.size < mineCount) mines.add(Math.floor(Math.random() * TOTAL));
 
-  const g = { userId: user.id, bet, mines, revealed: new Set(), over: false };
+  // rare easter egg: a star on one of the safe tiles
+  let star = null;
+  if (Math.random() < STAR_CHANCE) {
+    const safeTiles = [];
+    for (let i = 0; i < TOTAL; i++) if (!mines.has(i)) safeTiles.push(i);
+    star = safeTiles[Math.floor(Math.random() * safeTiles.length)];
+  }
+
+  const g = { userId: user.id, bet, mines, mineCount, star, starHit: false, revealed: new Set(), over: false };
   games.set(discordId, g);
   return g;
 }
 
 export function multiplierOf(g) {
-  return mineMultiplier(TOTAL, MINES, g.revealed.size);
+  const base = mineMultiplier(TOTAL, g.mineCount, g.revealed.size);
+  return g.starHit ? base * STAR_MULT : base;
 }
 
 export function reveal(discordId, idx) {
@@ -46,8 +59,10 @@ export function reveal(discordId, idx) {
     return { g, boom: true };
   }
   g.revealed.add(idx);
-  const won = g.revealed.size === TOTAL - MINES;
-  return { g, boom: false, cleared: won };
+  const gotStar = idx === g.star && !g.starHit;
+  if (gotStar) g.starHit = true;
+  const won = g.revealed.size === TOTAL - g.mineCount;
+  return { g, boom: false, cleared: won, star: gotStar, starMult: STAR_MULT };
 }
 
 export async function cashout(discordId) {

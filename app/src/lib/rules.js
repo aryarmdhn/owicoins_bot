@@ -85,7 +85,7 @@ export function slots(bet, rand = Math.random, luck = 1) {
 
 // --- minesweeper gamble ---
 // fair multiplier after revealing k safe tiles from `total` with `mines`, minus house edge
-export function mineMultiplier(total, mines, revealed, edge = 0.04) {
+export function mineMultiplier(total, mines, revealed, edge = 0.02) {
   const safe = total - mines;
   if (revealed <= 0) return 1;
   let m = 1;

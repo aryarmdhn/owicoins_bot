@@ -139,7 +139,7 @@ async function handleMine(interaction, [ownerId, action]) {
       const r = await mineSvc.cashout(ownerId);
       await interaction.update({
         content: `💰 <@${ownerId}> cashed out **${r.revealed}** gems at **×${r.mult.toFixed(2)}** → **+${fmt(r.payout)} OwiCoins**!\n💰 balance: **${fmt(r.balance)}**`,
-        components: [],
+        components: boardComponents(ownerId, g, { reveal: true }),
         allowedMentions: { parse: [] },
       });
     } catch {
@@ -174,7 +174,8 @@ async function handleMine(interaction, [ownerId, action]) {
   const cashRow = new ActionRowBuilder().addComponents(
     new ButtonBuilder().setCustomId(`mine:${ownerId}:cash`).setLabel("💰 Cash Out").setStyle(ButtonStyle.Primary).setDisabled(res.g.revealed.size === 0)
   );
-  await interaction.update({ content: statusText(res.g), components: [...boardComponents(ownerId, res.g), cashRow] });
+  const starBanner = res.star ? `🌟✨ **LUCKY STAR!** your multiplier is boosted **×${res.starMult}**! ✨🌟\n` : "";
+  await interaction.update({ content: starBanner + statusText(res.g), components: [...boardComponents(ownerId, res.g), cashRow] });
 }
 
 async function handleBlackjack(interaction, [ownerId, action]) {
