@@ -31,6 +31,11 @@ export async function execute(interaction) {
     [user.id]
   );
 
+  const [[luck]] = await pool.query(
+    "SELECT multiplier, UNIX_TIMESTAMP(expires_at) AS expires FROM user_luck WHERE user_id = ? AND (expires_at IS NULL OR expires_at > NOW())",
+    [user.id]
+  );
+
   const need = 100 * user.level;
   const embed = new EmbedBuilder()
     .setColor(RARITY_COLOR)
@@ -42,9 +47,14 @@ export async function execute(interaction) {
       { name: "🎴 Collectibles", value: fmt(inv.count), inline: true },
       { name: "💎 Value", value: fmt(inv.value), inline: true },
       { name: "🔥 Daily Streak", value: `${user.daily_streak} day(s)`, inline: true }
-    )
-    .setFooter({ text: "Gacha Bot" })
-    .setTimestamp();
+    );
+
+  if (luck) {
+    const until = luck.expires ? ` (until <t:${luck.expires}:R>)` : " (permanent)";
+    embed.addFields({ name: "🍀 Active Luck", value: `×${Number(luck.multiplier)}${until}`, inline: true });
+  }
+
+  embed.setFooter({ text: "Gacha Bot" }).setTimestamp();
 
   await interaction.reply({ embeds: [embed] });
 }
