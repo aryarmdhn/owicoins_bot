@@ -1,26 +1,25 @@
+import { EmbedBuilder } from "discord.js";
 import { play, resolveBet, BetError, InsufficientFunds } from "../services/gamble.js";
 import { slots, SLOT_SYMBOLS } from "../lib/rules.js";
 import { say, fmt, sleep } from "../lib/owo.js";
 
 export const data = { name: "slots" };
 
-const edit = (msg, content) => msg?.edit?.({ content, allowedMentions: { parse: [] } }).catch(() => {});
+const COLOR = { spin: 0xffd166, win: 0x06d6a0, lose: 0xef476f };
+const edit = (msg, embed) => msg?.edit?.({ embeds: [embed], allowedMentions: { parse: [] } }).catch(() => {});
 const rnd = () => SLOT_SYMBOLS[Math.floor(Math.random() * SLOT_SYMBOLS.length)];
 
 // each reel shows 3 rows; middle row = payline. `locked` = final middle symbol or null (still spinning)
-function board(cols, note) {
-  const top = cols.map((c) => c.top).join("   ");
-  const mid = cols.map((c) => c.mid).join("   ");
-  const bot = cols.map((c) => c.bot).join("   ");
-  return [
-    "🎰 **｡･:*:･ﾟ SLOTS ﾟ･:*:･｡**",
-    "┏━━━━━━━━━━━━━┓",
-    `┃   ${top}   ┃`,
-    `▶  ${mid}  ◀`,
-    `┃   ${bot}   ┃`,
-    "┗━━━━━━━━━━━━━┛",
-    note,
-  ].join("\n");
+function board(cols, note, color = COLOR.spin) {
+  const top = cols.map((c) => c.top).join(" ");
+  const mid = cols.map((c) => c.mid).join(" ");
+  const bot = cols.map((c) => c.bot).join(" ");
+  return new EmbedBuilder()
+    .setColor(color)
+    .setTitle("🎰 ｡･:*:･ﾟ SLOTS ﾟ･:*:･｡")
+    .setDescription([`　${top}`, `▶ ${mid} ◀`, `　${bot}`].join("\n"))
+    .setFooter({ text: "Gacha Bot" })
+    .addFields({ name: "\u200b", value: note });
 }
 
 function spinningCol() {
@@ -50,7 +49,7 @@ export async function execute(interaction) {
   }
 
   const spin = `<@${u.id}> bet 💰 **${fmt(bet)} OwiCoins** — rolling…`;
-  const msg = await interaction.reply({ content: board([spinningCol(), spinningCol(), spinningCol()], spin) });
+  const msg = await interaction.reply({ embeds: [board([spinningCol(), spinningCol(), spinningCol()], spin)] });
 
   // stop reels left → right
   const cols = [spinningCol(), spinningCol(), spinningCol()];
@@ -68,6 +67,7 @@ export async function execute(interaction) {
         ? `🎉🎉 <@${u.id}> hit the **JACKPOT** and won 💰 **+${fmt(r.payout - r.bet)} OwiCoins**!`
         : `✨ <@${u.id}> won 💰 **+${fmt(r.payout - r.bet)} OwiCoins**!`)
     : `💀 <@${u.id}> won nothing... better luck next time!`;
-  await edit(msg, board(cols, `${outcome}\n💰 balance: **${fmt(r.balance)} OwiCoins**`));
+  const color = r.payout > 0 ? COLOR.win : COLOR.lose;
+  await edit(msg, board(cols, `${outcome}\n💰 balance: **${fmt(r.balance)} OwiCoins**`, color));
   if (r.payout > 0) for (const e of ["🎉", "✨"]) await msg?.react?.(e).catch(() => {});
 }

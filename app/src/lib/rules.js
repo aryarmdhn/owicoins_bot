@@ -67,11 +67,28 @@ export function diceRoll(bet, rand = Math.random, luck = 1) {
   return { player, house, win, payout: win ? bet * 2 : 0 };
 }
 
-export const SLOT_SYMBOLS = ["🍒", "🍋", "🔔", "⭐", "💎", "💰"];
-const SLOT_TRIPLE = { "🍒": 3, "🍋": 4, "🔔": 6, "⭐": 10, "💎": 20, "💰": 50 };
+const SLOT_EMOJI = [
+  { id: "1537007604985892966", name: "paw_coin", multiplier: 2, weight: 22 },
+  { id: "1537007610463785011", name: "cherry", multiplier: 2.5, weight: 20 },
+  { id: "1537007608727347300", name: "star", multiplier: 3, weight: 18 },
+  { id: "1537007612778778764", name: "bell", multiplier: 4, weight: 16 },
+  { id: "1537007606495715369", name: "heart", multiplier: 5, weight: 12 },
+  { id: "1537007614930460802", name: "seven", multiplier: 6, weight: 6 },
+  { id: "1537007616687869963", name: "diamond", multiplier: 8, weight: 4 },
+  { id: "1537007619007451176", name: "owi", multiplier: 10, weight: 2 },
+];
+export const SLOT_SYMBOLS = SLOT_EMOJI.map((e) => `<:${e.name}:${e.id}>`);
+const SLOT_TRIPLE = Object.fromEntries(SLOT_EMOJI.map((e) => [`<:${e.name}:${e.id}>`, e.multiplier]));
+const SLOT_TOTAL_WEIGHT = SLOT_EMOJI.reduce((s, e) => s + e.weight, 0);
+
+function pickSymbol(rand) {
+  let n = rand() * SLOT_TOTAL_WEIGHT;
+  for (const e of SLOT_EMOJI) if ((n -= e.weight) < 0) return `<:${e.name}:${e.id}>`;
+  return SLOT_SYMBOLS[SLOT_SYMBOLS.length - 1];
+}
 
 export function slots(bet, rand = Math.random, luck = 1) {
-  const reels = [0, 0, 0].map(() => SLOT_SYMBOLS[Math.floor(rand() * SLOT_SYMBOLS.length)]);
+  const reels = [0, 0, 0].map(() => pickSymbol(rand));
   let mult = 0;
   if (reels[0] === reels[1] && reels[1] === reels[2]) mult = SLOT_TRIPLE[reels[0]];
   else if (reels[0] === reels[1] || reels[1] === reels[2] || reels[0] === reels[2]) mult = 1.5;
