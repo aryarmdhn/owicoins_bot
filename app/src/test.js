@@ -51,6 +51,9 @@ assert.deepEqual(parseArgs("pull", ["abc"], noMentions), { pulls: null });
 assert.deepEqual(parseArgs("sell", ["Neon Cat", "2"], noMentions), { collectible: "Neon Cat", arg2: "2" });
 assert.deepEqual(parseArgs("sell", ["all", "rare"], noMentions), { collectible: "all", arg2: "rare" });
 assert.deepEqual(parseArgs("sell", ["all"], noMentions), { collectible: "all", arg2: null });
+assert.deepEqual(parseArgs("sell", ["golden", "eagle"], noMentions), { collectible: "golden eagle", arg2: null });
+assert.deepEqual(parseArgs("sell", ["golden", "eagle", "3"], noMentions), { collectible: "golden eagle", arg2: "3" });
+assert.deepEqual(parseArgs("sell", ["Hippo"], noMentions), { collectible: "Hippo", arg2: null });
 
 const user = { id: "42" };
 const withMention = { mentions: { users: new Map([["42", user]]) } };

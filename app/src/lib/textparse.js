@@ -22,10 +22,7 @@ const SCHEMA = {
   ],
   item: [{ name: "collectible", type: "rest" }],
   fuse: [{ name: "collectible", type: "rest" }],
-  sell: [
-    { name: "collectible", type: "str" },
-    { name: "arg2", type: "str" },
-  ],
+  sell: [{ name: "sell", type: "sell" }],
   leaderboard: [{ name: "type", type: "str" }],
   trade: [{ name: "user", type: "user" }],
   fight: [
@@ -76,6 +73,20 @@ export function parseArgs(name, tokens, message) {
     if (spec.type === "user") {
       values[spec.name] = mentions[mentionIdx++] ?? null;
       if (tokens[ti] && MENTION.test(tokens[ti])) ti++;
+      continue;
+    }
+    if (spec.type === "sell") {
+      const rest = tokens.slice(ti);
+      if (rest[0]?.toLowerCase() === "all") {
+        values.collectible = "all";
+        values.arg2 = rest[1] ?? null;
+      } else {
+        const last = rest[rest.length - 1];
+        const hasQty = rest.length > 1 && Number.isInteger(Number(last)) && Number(last) > 0;
+        values.collectible = (hasQty ? rest.slice(0, -1) : rest).join(" ").trim() || null;
+        values.arg2 = hasQty ? last : null;
+      }
+      ti = tokens.length;
       continue;
     }
     if (spec.type === "rest") {
