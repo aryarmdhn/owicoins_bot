@@ -9,24 +9,15 @@ const COLOR = { spin: 0xffd166, win: 0x06d6a0, lose: 0xef476f };
 const edit = (msg, embed) => msg?.edit?.({ embeds: [embed], allowedMentions: { parse: [] } }).catch(() => {});
 const rnd = () => SLOT_SYMBOLS[Math.floor(Math.random() * SLOT_SYMBOLS.length)];
 
-// each reel shows 3 rows; middle row = payline. `locked` = final middle symbol or null (still spinning)
-function board(cols, note, color = COLOR.spin) {
-  const top = cols.map((c) => c.top).join(" ");
-  const mid = cols.map((c) => c.mid).join(" ");
-  const bot = cols.map((c) => c.bot).join(" ");
+// single payline of 3 reels. `reels[i]` is null while spinning, or the locked symbol.
+function board(reels, note, color = COLOR.spin) {
+  const row = reels.map((s) => s ?? rnd()).join("　");
   return new EmbedBuilder()
     .setColor(color)
     .setTitle("🎰 ｡･:*:･ﾟ SLOTS ﾟ･:*:･｡")
-    .setDescription([`　${top}`, `▶ ${mid} ◀`, `　${bot}`].join("\n"))
+    .setDescription(`▶　${row}　◀`)
     .setFooter({ text: "Gacha Bot" })
     .addFields({ name: "\u200b", value: note });
-}
-
-function spinningCol() {
-  return { top: rnd(), mid: rnd(), bot: rnd() };
-}
-function lockedCol(sym) {
-  return { top: rnd(), mid: sym, bot: rnd() };
 }
 
 export async function execute(interaction) {
@@ -49,16 +40,17 @@ export async function execute(interaction) {
   }
 
   const spin = `<@${u.id}> bet 💰 **${fmt(bet)} OwiCoins** — rolling…`;
-  const msg = await interaction.reply({ embeds: [board([spinningCol(), spinningCol(), spinningCol()], spin)] });
+  const msg = await interaction.reply({ embeds: [board([null, null, null], spin)] });
 
-  // stop reels left → right
-  const cols = [spinningCol(), spinningCol(), spinningCol()];
+  // stop reels left → right; each reel spins a few frames before locking
+  const reels = [null, null, null];
   for (let i = 0; i < 3; i++) {
-    await sleep(600);
-    cols[i] = lockedCol(r.reels[i]);
-    for (let j = i + 1; j < 3; j++) cols[j] = spinningCol();
-    const done = i === 2;
-    await edit(msg, board(cols, done ? "🎲 …" : `reel ${i + 1} locked ✔`));
+    for (let f = 0; f < 3; f++) {
+      await sleep(280);
+      await edit(msg, board(reels, `reeling… ${"🎡".repeat(i + 1)}`));
+    }
+    reels[i] = r.reels[i];
+    await edit(msg, board(reels, `reel ${i + 1} locked ✔`));
   }
   await sleep(300);
 
