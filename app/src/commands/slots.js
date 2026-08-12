@@ -4,13 +4,13 @@ import { say, fmt, sleep } from "../lib/owo.js";
 
 export const data = { name: "slots" };
 
-const SPIN = "<a:slot_spin_loop:1537012877356044358>";
+const SPIN = "<a:slot_spin_single:1537014713567809608>";
 
 const edit = (msg, content) => msg?.edit?.({ content, allowedMentions: { parse: [] } }).catch(() => {});
 
 // single payline of 3 reels. `reels[i]` is null while spinning (shows GIF), or the locked symbol.
 function board(reels, note) {
-  const row = reels.map((s) => s ?? SPIN).join("　");
+  const row = reels.map((s) => s ?? SPIN).join("");
   return [
     "**｡･:*:･ﾟ SLOTS ﾟ･:*:･｡**",
     `▶　${row}　◀`,
