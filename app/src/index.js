@@ -44,7 +44,8 @@ client.on(Events.MessageCreate, async (message) => {
   const tokens = tokenize(message.content.trim());
   const first = tokens[0]?.toLowerCase();
   if (!first || !first.startsWith(PREFIX)) return;
-  const name = first.slice(PREFIX.length);
+  const ALIAS = { slot: "slots" };
+  const name = ALIAS[first.slice(PREFIX.length)] ?? first.slice(PREFIX.length);
   if (!textCommands.has(name)) return;
 
   const command = commands.get(name);
