@@ -28,6 +28,7 @@ const HELP = [
   "`gslots <bet|all>` — spin the slots 🎰",
   "`gmine <bet|all>` — minesweeper cash-out 💣",
   "`gbj <bet|all>` — blackjack vs dealer 🃏",
+  "`gcrash <bet|all>` — rocket crash, cash out before boom 🚀",
   "`gspin` — daily lucky wheel 🎡",
   "`gpray` / `gluck` — pray for a luck blessing 🙏",
   "`gprofile [@user]` — view profile 👤",

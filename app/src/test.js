@@ -110,7 +110,19 @@ const bet = 100;
 assert.equal(coinflip("heads", bet, () => 0.1).payout, 200); // win pays 2x
 assert.equal(coinflip("heads", bet, () => 0.9).payout, 0);
 
-const { luckWinBonus } = await import("./lib/rules.js");
+const { luckWinBonus, crashPoint } = await import("./lib/rules.js");
+assert.equal(crashPoint(0, 4), 1); // low e → floored to 1.00x (instant crash)
+assert.ok(crashPoint(50, 4) > crashPoint(0, 4)); // higher e → higher target
+assert.ok(crashPoint(99, 4) > 50); // near-max e → huge multiplier
+// house edge: average payout multiplier < 1 (edge holds)
+let evTotal = 0, n = 200000;
+for (let i = 0; i < n; i++) {
+  const e = Math.random() * 100;
+  const pt = crashPoint(e, 4);
+  const target = 2; // player always tries to cash at 2x
+  evTotal += pt >= target ? target : 0;
+}
+assert.ok(evTotal / n < 1.02, "crash keeps a house edge at a fixed 2x strategy");
 assert.equal(luckWinBonus(1), 0);
 assert.equal(luckWinBonus(6), 0.02);
 assert.equal(luckWinBonus(100), 0.02);

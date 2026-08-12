@@ -11,6 +11,8 @@ import * as mineSvc from "../services/mine.js";
 import { boardComponents, mineEmbed } from "../commands/mine.js";
 import * as bjSvc from "../services/blackjack.js";
 import { render as renderBj, resultText as bjResult, flipReveal as bjFlipReveal } from "../commands/bj.js";
+import * as crashSvc from "../services/crash.js";
+import { EmbedBuilder } from "discord.js";
 import { ActionRowBuilder, ButtonBuilder, ButtonStyle } from "discord.js";
 import { fmt } from "./owo.js";
 import { handleFight } from "./fighthandler.js";
@@ -46,6 +48,11 @@ export async function handleButton(interaction) {
 
   if (kind === "bj") {
     await handleBlackjack(interaction, args);
+    return;
+  }
+
+  if (kind === "crash") {
+    await handleCrash(interaction, args);
     return;
   }
 
@@ -150,6 +157,34 @@ async function handleBlackjack(interaction, [ownerId, action]) {
       return;
     }
     console.error("blackjack failed:", e);
+    await interaction.reply({ content: "Something went wrong with the game.", ephemeral: true }).catch(() => {});
+  }
+}
+
+async function handleCrash(interaction, [ownerId]) {
+  if (interaction.user.id !== ownerId) {
+    await interaction.reply({ content: "This isn't your game.", ephemeral: true });
+    return;
+  }
+  const g = crashSvc.games.get(ownerId);
+  if (!g || g.over) {
+    await interaction.reply({ content: "No active game.", ephemeral: true }).catch(() => {});
+    return;
+  }
+  try {
+    const r = await crashSvc.cashout(ownerId, g.mult); // marks g.over, stops the loop
+    const embed = new EmbedBuilder()
+      .setColor(0x57f287)
+      .setTitle(`<:crash_3_cashout:1537094207460876288> Cashed out at ${r.mult.toFixed(2)}×`)
+      .setDescription(`🎉 <@${ownerId}> won **+${fmt(r.payout - g.bet)} OwiCoins**!\n<:owicoin:1537023515927117874> balance: **${fmt(r.balance)}**\n_seed: \`${r.serverSeed}\`_`)
+      .setFooter({ text: "Gacha Bot" });
+    await interaction.update({ embeds: [embed], components: [], allowedMentions: { parse: [] } });
+  } catch (e) {
+    if (e instanceof crashSvc.CrashError) {
+      await interaction.reply({ content: "Too late — it already crashed.", ephemeral: true }).catch(() => {});
+      return;
+    }
+    console.error("crash failed:", e);
     await interaction.reply({ content: "Something went wrong with the game.", ephemeral: true }).catch(() => {});
   }
 }

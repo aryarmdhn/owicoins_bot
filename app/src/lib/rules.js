@@ -110,6 +110,14 @@ export function slots(bet, rand = Math.random, luck = 1) {
   return { reels, payout: Math.floor(bet * mult), mult };
 }
 
+// --- crash gamble ---
+// provably-fair crash point from a uniform e in [0,100), house edge H percent.
+// crashPoint = (100 - H) / (100 - e), floored at 1.00x. Higher targets get rarer.
+export function crashPoint(e, house = 4) {
+  const denom = 100 - Math.min(Math.max(e, 0), 99.99);
+  return Math.max(1, Math.floor(((100 - house) * 100) / denom) / 100);
+}
+
 // --- minesweeper gamble ---
 // fair multiplier after revealing k safe tiles from `total` with `mines`, minus house edge
 export function mineMultiplier(total, mines, revealed, edge = 0.02) {
