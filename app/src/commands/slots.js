@@ -1,23 +1,20 @@
-import { EmbedBuilder } from "discord.js";
 import { play, resolveBet, BetError, InsufficientFunds } from "../services/gamble.js";
 import { slots, SLOT_SYMBOLS } from "../lib/rules.js";
 import { say, fmt, sleep } from "../lib/owo.js";
 
 export const data = { name: "slots" };
 
-const COLOR = { spin: 0xffd166, win: 0x06d6a0, lose: 0xef476f };
-const edit = (msg, embed) => msg?.edit?.({ embeds: [embed], allowedMentions: { parse: [] } }).catch(() => {});
+const edit = (msg, content) => msg?.edit?.({ content, allowedMentions: { parse: [] } }).catch(() => {});
 const rnd = () => SLOT_SYMBOLS[Math.floor(Math.random() * SLOT_SYMBOLS.length)];
 
 // single payline of 3 reels. `reels[i]` is null while spinning, or the locked symbol.
-function board(reels, note, color = COLOR.spin) {
-  const row = reels.map((s) => s ?? rnd()).join("　");
-  return new EmbedBuilder()
-    .setColor(color)
-    .setTitle("🎰 ｡･:*:･ﾟ SLOTS ﾟ･:*:･｡")
-    .setDescription(`▶　${row}　◀`)
-    .setFooter({ text: "Gacha Bot" })
-    .addFields({ name: "\u200b", value: note });
+function board(reels, note) {
+  const row = reels.map((s) => s ?? rnd()).join(" | ");
+  return [
+    "🎰 **｡･:*:･ﾟ SLOTS ﾟ･:*:･｡**",
+    `▶ | ${row} | ◀`,
+    note,
+  ].join("\n");
 }
 
 export async function execute(interaction) {
@@ -40,7 +37,7 @@ export async function execute(interaction) {
   }
 
   const spin = `<@${u.id}> bet 💰 **${fmt(bet)} OwiCoins** — rolling…`;
-  const msg = await interaction.reply({ embeds: [board([null, null, null], spin)] });
+  const msg = await interaction.reply({ content: board([null, null, null], spin) });
 
   // stop reels left → right; each reel spins a few frames before locking
   const reels = [null, null, null];
@@ -59,7 +56,6 @@ export async function execute(interaction) {
         ? `🎉🎉 <@${u.id}> hit the **JACKPOT** and won 💰 **+${fmt(r.payout - r.bet)} OwiCoins**!`
         : `✨ <@${u.id}> won 💰 **+${fmt(r.payout - r.bet)} OwiCoins**!`)
     : `💀 <@${u.id}> won nothing... better luck next time!`;
-  const color = r.payout > 0 ? COLOR.win : COLOR.lose;
-  await edit(msg, board(cols, `${outcome}\n💰 balance: **${fmt(r.balance)} OwiCoins**`, color));
+  await edit(msg, board(reels, `${outcome}\n💰 balance: **${fmt(r.balance)} OwiCoins**`));
   if (r.payout > 0) for (const e of ["🎉", "✨"]) await msg?.react?.(e).catch(() => {});
 }
