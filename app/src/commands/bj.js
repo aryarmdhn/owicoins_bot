@@ -1,51 +1,40 @@
-import { EmbedBuilder, AttachmentBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle } from "discord.js";
+import { ActionRowBuilder, ButtonBuilder, ButtonStyle } from "discord.js";
 import { start, BjError, handValue } from "../services/blackjack.js";
 import { resolveBet, BetError } from "../services/gamble.js";
-import { renderHand } from "../lib/cardimg.js";
-import { say, fmt } from "../lib/owo.js";
+import { hand, CHIP, FLIP } from "../lib/cards.js";
+import { say, fmt, sleep } from "../lib/owo.js";
 
 export const data = { name: "bj" };
 
-const COLOR = { win: 0x57f287, lose: 0xed4245, push: 0xfaa61a, playing: 0x5865f2 };
-
-export function render(discordId, g, { hideDealer = true, result = null, outcome = null } = {}) {
-  const playerImg = renderHand(g.player);
-  const dealerImg = renderHand(g.dealer, { hideSecond: hideDealer });
-  const files = [
-    new AttachmentBuilder(playerImg, { name: "player.png" }),
-    new AttachmentBuilder(dealerImg, { name: "dealer.png" }),
-  ];
-
+export function render(discordId, g, { hideDealer = true, result = null } = {}) {
   const dealerVal = hideDealer ? "?" : handValue(g.dealer);
-  const color = outcome
-    ? (["win", "blackjack", "dealer_bust"].includes(outcome) ? COLOR.win
-      : outcome === "push" ? COLOR.push : COLOR.lose)
-    : COLOR.playing;
-
-  const embed = new EmbedBuilder()
-    .setColor(color)
-    .setTitle("🃏 Blackjack")
-    .setDescription(`Bet: **${fmt(g.bet)} OwiCoins**`)
-    .addFields(
-      { name: `🤖 Dealer (${dealerVal})`, value: "\u200b" },
-    )
-    .setImage("attachment://dealer.png")
-    .setFooter({ text: "Gacha Bot" });
-
-  // second embed for player hand (Discord shows both images stacked)
-  const playerEmbed = new EmbedBuilder()
-    .setColor(color)
-    .setTitle(`🧑 You (${handValue(g.player)})`)
-    .setImage("attachment://player.png");
-
-  if (result) playerEmbed.setDescription(result);
+  const lines = [
+    `🃏 **Blackjack** — ${CHIP} **${fmt(g.bet)} OwiCoins**`,
+    `🤖 Dealer (${dealerVal}): ${hand(g.dealer, { hideSecond: hideDealer })}`,
+    `🧑 You (${handValue(g.player)}): ${hand(g.player)}`,
+  ];
+  if (result) lines.push(result);
 
   const buttons = new ActionRowBuilder().addComponents(
     new ButtonBuilder().setCustomId(`bj:${discordId}:hit`).setLabel("Hit").setStyle(ButtonStyle.Success).setDisabled(g.over),
     new ButtonBuilder().setCustomId(`bj:${discordId}:stand`).setLabel("Stand").setStyle(ButtonStyle.Danger).setDisabled(g.over)
   );
 
-  return { embeds: [embed, playerEmbed], files, components: g.over ? [] : [buttons], attachments: [] };
+  return { content: lines.join("\n"), components: g.over ? [] : [buttons], allowedMentions: { parse: [] } };
+}
+
+// flip the face-down dealer card: cardback → flip GIF → revealed hand
+export async function flipReveal(msg, discordId, g, result) {
+  if (!msg?.edit) return;
+  const base = (dealer) => [
+    `🃏 **Blackjack** — ${CHIP} **${fmt(g.bet)} OwiCoins**`,
+    `🤖 Dealer: ${dealer}`,
+    `🧑 You (${handValue(g.player)}): ${hand(g.player)}`,
+  ].join("\n");
+  const shown = hand(g.dealer, { hideSecond: true }).split(" ")[0];
+  await msg.edit({ content: base(`${shown} ${FLIP}`), components: [], allowedMentions: { parse: [] } }).catch(() => {});
+  await sleep(900);
+  await msg.edit(render(discordId, g, { hideDealer: false, result })).catch(() => {});
 }
 
 export function resultText(o) {
@@ -66,11 +55,8 @@ export async function execute(interaction) {
   try {
     const bet = await resolveBet(u.id, u.username, interaction.options.getString("bet"));
     const res = await start(u.id, u.username, bet);
-    if (res.done) {
-      await interaction.reply(render(u.id, res.g, { hideDealer: false, result: resultText(res), outcome: res.outcome }));
-    } else {
-      await interaction.reply(render(u.id, res.g));
-    }
+    const msg = await interaction.reply(render(u.id, res.g, { hideDealer: true }));
+    if (res.done) await flipReveal(msg, u.id, res.g, resultText(res)); // natural blackjack
   } catch (e) {
     if (e instanceof BjError || e instanceof BetError) return void (await say(interaction, `❌ <@${u.id}> ${e.message}`));
     throw e;

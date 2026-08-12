@@ -10,7 +10,7 @@ import { claimReady } from "../services/achievements.js";
 import * as mineSvc from "../services/mine.js";
 import { boardComponents, mineText } from "../commands/mine.js";
 import * as bjSvc from "../services/blackjack.js";
-import { render as renderBj, resultText as bjResult } from "../commands/bj.js";
+import { render as renderBj, resultText as bjResult, flipReveal as bjFlipReveal } from "../commands/bj.js";
 import { ActionRowBuilder, ButtonBuilder, ButtonStyle } from "discord.js";
 import { fmt } from "./owo.js";
 import { handleFight } from "./fighthandler.js";
@@ -135,8 +135,11 @@ async function handleBlackjack(interaction, [ownerId, action]) {
   }
   try {
     const res = action === "hit" ? await bjSvc.hit(ownerId) : await bjSvc.stand(ownerId);
-    if (res.done) {
-      await interaction.update(renderBj(ownerId, res.g, { hideDealer: false, result: bjResult(res), outcome: res.outcome }));
+    if (res.done && action === "stand") {
+      await interaction.update(renderBj(ownerId, res.g, { hideDealer: true }));
+      await bjFlipReveal(interaction.message, ownerId, res.g, bjResult(res));
+    } else if (res.done) {
+      await interaction.update(renderBj(ownerId, res.g, { hideDealer: false, result: bjResult(res) }));
     } else {
       await interaction.update(renderBj(ownerId, res.g));
     }
