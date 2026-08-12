@@ -6,7 +6,7 @@ export const data = { name: "pull" };
 
 const ORDER = ["Immortal", "Mythic", "Legendary", "Epic", "Rare", "Uncommon", "Common"];
 const HIGH = new Set(["Legendary", "Mythic", "Immortal"]);
-const SPIN = "<a:gacha_pull:1537027077914624110>";
+const SPIN_GIF = "https://cdn.discordapp.com/emojis/1537027077914624110.gif";
 const COIN = "<:owicoin:1537023515927117874>";
 
 function bestRarity(results) {
@@ -20,7 +20,12 @@ export async function execute(interaction) {
     await say(interaction, `❌ <@${u.id}> pull count must be **1-10**!`);
     return;
   }
-  const msg = await interaction.reply({ content: `${SPIN} rolling the gacha…` });
+  const rolling = new EmbedBuilder()
+    .setColor(0x5865f2)
+    .setTitle("🎴 Rolling the gacha…")
+    .setImage(SPIN_GIF)
+    .setFooter({ text: "Gacha Bot" });
+  const msg = await interaction.reply({ embeds: [rolling] });
   try {
     await sleep(1600);
 
