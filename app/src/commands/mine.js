@@ -1,4 +1,4 @@
-import { ActionRowBuilder, ButtonBuilder, ButtonStyle } from "discord.js";
+import { EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle } from "discord.js";
 import { start, multiplierOf, games, TOTAL, COLS, MineError } from "../services/mine.js";
 import { resolveBet, BetError } from "../services/gamble.js";
 import { say, fmt } from "../lib/owo.js";
@@ -28,13 +28,19 @@ export function boardComponents(discordId, g, { reveal = false } = {}) {
   return rows;
 }
 
-export function mineText(g, { note = null } = {}) {
+export function mineEmbed(g, { note = null, color = 0x5865f2 } = {}) {
   const mult = multiplierOf(g).toFixed(2);
   const potential = Math.floor(g.bet * multiplierOf(g));
-  const head =
-    `💣 **MINES** · bet **${fmt(g.bet)} OwiCoins** · ${g.mineCount} mines\n` +
-    `💎 revealed **${g.revealed.size}** · **×${mult}** · cash out **${fmt(potential)} OwiCoins**`;
-  return (note ? `${note}\n` : "") + head;
+  const e = new EmbedBuilder()
+    .setColor(color)
+    .setTitle("💣 MINES")
+    .setDescription(
+      `Bet **${fmt(g.bet)} OwiCoins** · ${g.mineCount} mines\n` +
+      `💎 revealed **${g.revealed.size}** · **×${mult}** · cash out **${fmt(potential)} OwiCoins**`
+    )
+    .setFooter({ text: "Gacha Bot" });
+  if (note) e.addFields({ name: "\u200b", value: note });
+  return e;
 }
 
 export async function execute(interaction) {
@@ -46,7 +52,7 @@ export async function execute(interaction) {
     const row = new ActionRowBuilder().addComponents(
       new ButtonBuilder().setCustomId(`mine:${u.id}:cash`).setEmoji("1537023515927117874").setLabel("Cash Out").setStyle(ButtonStyle.Primary).setDisabled(true)
     );
-    await interaction.reply({ content: mineText(g), components: [...boardComponents(u.id, g), row] });
+    await interaction.reply({ embeds: [mineEmbed(g)], components: [...boardComponents(u.id, g), row] });
   } catch (e) {
     if (e instanceof MineError || e instanceof BetError) return void (await say(interaction, `❌ <@${u.id}> ${e.message}`));
     throw e;
