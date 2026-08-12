@@ -1,5 +1,6 @@
 import { render as renderInventory } from "../commands/inventory.js";
 import { render as renderCollection } from "../commands/collection.js";
+import { render as renderLeaderboard } from "../commands/leaderboard.js";
 import { panel } from "../commands/trade.js";
 import * as tsess from "../services/tradesession.js";
 import { ModalBuilder, TextInputBuilder, TextInputStyle } from "discord.js";
@@ -60,6 +61,12 @@ export async function handleButton(interaction) {
   const BROWSE = new Set(["inv", "col", "invsort", "colsort", "invrar", "colrar"]);
   if (BROWSE.has(kind)) {
     await handleBrowse(interaction, kind, args);
+    return;
+  }
+
+  if (kind === "lb") {
+    const [type, page] = args;
+    await interaction.update(await renderLeaderboard(type, Number(page)));
     return;
   }
 }
