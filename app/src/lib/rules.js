@@ -68,14 +68,12 @@ export function diceRoll(bet, rand = Math.random, luck = 1) {
 }
 
 const SLOT_EMOJI = [
-  { id: "1537007604985892966", name: "paw_coin", multiplier: 2, weight: 22 },
-  { id: "1537007610463785011", name: "cherry", multiplier: 2.5, weight: 20 },
-  { id: "1537007608727347300", name: "star", multiplier: 3, weight: 18 },
-  { id: "1537007612778778764", name: "bell", multiplier: 4, weight: 16 },
-  { id: "1537007606495715369", name: "heart", multiplier: 5, weight: 12 },
-  { id: "1537007614930460802", name: "seven", multiplier: 6, weight: 6 },
-  { id: "1537007616687869963", name: "diamond", multiplier: 8, weight: 4 },
-  { id: "1537007619007451176", name: "owi", multiplier: 10, weight: 2 },
+  { id: "1537007604985892966", name: "paw_coin", multiplier: 1, weight: 26 },
+  { id: "1537007610463785011", name: "cherry", multiplier: 2.5, weight: 16 },
+  { id: "1537007608727347300", name: "star", multiplier: 2, weight: 20 },
+  { id: "1537007612778778764", name: "bell", multiplier: 1.5, weight: 22 },
+  { id: "1537007606495715369", name: "heart", multiplier: 4, weight: 12 },
+  { id: "1537007619007451176", name: "owi", multiplier: 8, weight: 4 },
 ];
 export const SLOT_SYMBOLS = SLOT_EMOJI.map((e) => `<:${e.name}:${e.id}>`);
 const SLOT_TRIPLE = Object.fromEntries(SLOT_EMOJI.map((e) => [`<:${e.name}:${e.id}>`, e.multiplier]));
@@ -87,26 +85,20 @@ function pickSymbol(rand) {
   return SLOT_SYMBOLS[SLOT_SYMBOLS.length - 1];
 }
 
-// ponytail: extra chance to force a triple on top of the natural ~3.3%. tune here if too generous.
-const TRIPLE_BONUS = 0.08;
+// ponytail: extra chance to force a triple on top of the natural ~3%. tune here if too generous.
+const TRIPLE_BONUS = 0.48;
 
+// owo-style: only a triple wins. 2-of-a-kind or all-different = loss.
 export function slots(bet, rand = Math.random, luck = 1) {
   const reels = [0, 0, 0].map(() => pickSymbol(rand));
   let isTriple = reels[0] === reels[1] && reels[1] === reels[2];
-  // bonus: nudge a non-triple spin into a triple (weighted symbol) to make wins less rare
-  if (!isTriple && rand() < TRIPLE_BONUS) {
+  // bonus: nudge a non-triple spin into a triple (weighted symbol), boosted by luck
+  if (!isTriple && rand() < TRIPLE_BONUS + luckWinBonus(luck)) {
     const s = pickSymbol(rand);
     reels[0] = reels[1] = reels[2] = s;
     isTriple = true;
   }
-  let mult = 0;
-  if (isTriple) mult = SLOT_TRIPLE[reels[0]];
-  else if (reels[0] === reels[1] || reels[1] === reels[2] || reels[0] === reels[2]) mult = 1.5;
-  // luck: a total loss has a small chance to be nudged into a 2-match
-  if (mult === 0 && rand() < luckWinBonus(luck)) {
-    reels[1] = reels[0];
-    mult = 1.5;
-  }
+  const mult = isTriple ? SLOT_TRIPLE[reels[0]] : 0;
   return { reels, payout: Math.floor(bet * mult), mult };
 }
 

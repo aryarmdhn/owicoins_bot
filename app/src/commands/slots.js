@@ -9,10 +9,11 @@ const SPIN = "<a:slot_spin_single:1537014713567809608>";
 const edit = (msg, content) => msg?.edit?.({ content, allowedMentions: { parse: [] } }).catch(() => {});
 
 // single payline of 3 reels. `reels[i]` is null while spinning (shows GIF), or the locked symbol.
-function board(reels, note) {
+function board(reels, username, bet, note) {
   const row = reels.map((s) => s ?? SPIN).join("");
   return [
     "**｡･:*:･ﾟ SLOTS ﾟ･:*:･｡**",
+    `**${username}** bet <:owicoin:1537023515927117874> **${fmt(bet)} OwiCoins**`,
     `▶　${row}　◀`,
     note,
   ].join("\n");
@@ -37,23 +38,25 @@ export async function execute(interaction) {
     throw e;
   }
 
-  const spin = `<@${u.id}> bet <:owicoin:1537023515927117874> **${fmt(bet)} OwiCoins** — rolling…`;
-  const msg = await interaction.reply({ content: board([null, null, null], spin) });
+  const msg = await interaction.reply({ content: board([null, null, null], u.username, bet, "rolling…") });
 
   // GIF spins in every slot; lock left → right (1 edit per reel, no frame spam)
   const reels = [null, null, null];
   for (let i = 0; i < 3; i++) {
     await sleep(800);
     reels[i] = r.reels[i];
-    await edit(msg, board(reels, i === 2 ? "🎲 …" : `reel ${i + 1} locked ✔`));
+    await edit(msg, board(reels, u.username, bet, i === 2 ? "🎲 …" : `reel ${i + 1} locked ✔`));
   }
   await sleep(300);
 
-  const outcome = r.payout > 0
-    ? (r.mult >= 10
-        ? `🎉🎉 <@${u.id}> hit the **JACKPOT** and won <:owicoin:1537023515927117874> **+${fmt(r.payout - r.bet)} OwiCoins**!`
-        : `✨ <@${u.id}> won <:owicoin:1537023515927117874> **+${fmt(r.payout - r.bet)} OwiCoins**!`)
-    : `💀 <@${u.id}> won nothing... better luck next time!`;
-  await edit(msg, board(reels, `${outcome}\n<:owicoin:1537023515927117874> balance: **${fmt(r.balance)} OwiCoins**`));
+  const net = r.payout - r.bet;
+  const outcome = r.payout <= 0
+    ? `💀 <@${u.id}> won nothing... better luck next time!`
+    : net === 0
+    ? `😌 <@${u.id}> broke even — got your **${fmt(r.bet)} OwiCoins** back!`
+    : r.mult >= 8
+    ? `🎉🎉 <@${u.id}> hit the **JACKPOT** and won <:owicoin:1537023515927117874> **+${fmt(net)} OwiCoins**!`
+    : `✨ <@${u.id}> won <:owicoin:1537023515927117874> **+${fmt(net)} OwiCoins**!`;
+  await edit(msg, board(reels, u.username, bet, `${outcome}\n<:owicoin:1537023515927117874> balance: **${fmt(r.balance)} OwiCoins**`));
   if (r.payout > 0) for (const e of ["🎉", "✨"]) await msg?.react?.(e).catch(() => {});
 }
