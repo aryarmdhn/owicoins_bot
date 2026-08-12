@@ -1,6 +1,7 @@
 import pool from "../db/pool.js";
 import { getOrCreate } from "../repositories/users.js";
 import { mutate, InsufficientFunds } from "./economy.js";
+import { XP_PLAY, XP_WIN } from "./gamble.js";
 import { mineMultiplier } from "../lib/rules.js";
 
 export { InsufficientFunds };
@@ -24,7 +25,7 @@ export async function start(discordId, username, bet) {
   if (user.coins < bet) throw new MineError(`You only have ${user.coins.toLocaleString()} OwiCoins.`);
 
   // pay the bet up front (atomic + audited)
-  await mutate(user.id, { type: "mine", amount: -bet, reference: `mine:${user.id}:${Date.now()}` });
+  await mutate(user.id, { type: "mine", amount: -bet, reference: `mine:${user.id}:${Date.now()}`, xp: XP_PLAY });
 
   const mineCount = MINES_MIN + Math.floor(Math.random() * (MINES_MAX - MINES_MIN + 1));
   const mines = new Set();
@@ -74,12 +75,12 @@ export async function cashout(discordId) {
   games.delete(discordId);
 
   const payout = Math.floor(g.bet * multiplierOf(g));
-  const r = await mutate(g.userId, { type: "mine_win", amount: payout, reference: `mine:${g.userId}:cash:${Date.now()}` });
+  const r = await mutate(g.userId, { type: "mine_win", amount: payout, reference: `mine:${g.userId}:cash:${Date.now()}`, xp: XP_WIN });
   return { payout, mult: multiplierOf(g), balance: r.balance, revealed: g.revealed.size };
 }
 
 export async function autoWin(g) {
   const payout = Math.floor(g.bet * multiplierOf(g));
-  const r = await mutate(g.userId, { type: "mine_win", amount: payout, reference: `mine:${g.userId}:clear:${Date.now()}` });
+  const r = await mutate(g.userId, { type: "mine_win", amount: payout, reference: `mine:${g.userId}:clear:${Date.now()}`, xp: XP_WIN });
   return { payout, balance: r.balance };
 }

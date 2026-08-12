@@ -15,6 +15,37 @@ export const RARITY_COLOR = {
   Legendary: 0xf59e0b, Mythic: 0xef4444, Immortal: 0xffd700,
 };
 
+// per-pet emoji (id_Name:emojiId). key = collectible name. overrides the rarity icon.
+export const PET_EMOJI = {
+  "God Owi": "<:001_God_Owi:1537130325480579083>",
+  "Elder Dragon": "<:147_Elder_Dragon:1537129378842939412>",
+  "World Serpent": "<:148_World_Serpent:1537129381418500188>",
+  "Cosmic Behemoth": "<:149_Cosmic_Behemoth:1537129383196631060>",
+  "Volcano Titan": "<:150_Volcano_Titan:1537129385046315080>",
+  "Mind Master": "<:175_Mind_Master:1537129386967568485>",
+  "Mad Titan": "<:176_Mad_Titan:1537129389253468220>",
+  "Infinity Wielder": "<:177_Infinity_Wielder:1537129391258341417>",
+  "Golden Dragon": "<:137_Golden_Dragon:1537130735549288539>",
+  "Storm Wyrm": "<:138_Storm_Wyrm:1537130738305081484>",
+  "Bone Tyrant": "<:139_Bone_Tyrant:1537130740918132766>",
+  "Kraken": "<:140_Kraken:1537130743606673488>",
+  "Leviathan": "<:141_Leviathan:1537130745963872456>",
+  "Nemean Lion": "<:142_Nemean_Lion:1537130748472197211>",
+  "Celestial Unicorn": "<:143_Celestial_Unicorn:1537130751043182602>",
+  "Phoenix": "<:144_Phoenix:1537130752888803429>",
+  "Fenrir": "<:145_Fenrir:1537130754977562758>",
+  "Jörmungandr": "<:146_J_rmungandr:1537130757422841896>",
+  "Storm Bringer": "<:169_Storm_Bringer:1537130759587102792>",
+  "Cosmic Captain": "<:170_Cosmic_Captain:1537130761755562054>",
+  "Iron Overlord": "<:171_Iron_Overlord:1537130764246978692>",
+  "Thunder God": "<:172_Thunder_God:1537130766318837831>",
+  "Rage Titan": "<:173_Rage_Titan:1537130768483225761>",
+  "Sorcerer Supreme": "<:174_Sorcerer_Supreme:1537130770630574181>",
+};
+
+// icon for a collectible: its own pet emoji if defined, else the rarity emoji.
+export const iconFor = (name, rarity) => PET_EMOJI[name] ?? RARITY_EMOJI[rarity] ?? "";
+
 export const pick = (arr) => arr[Math.floor(Math.random() * arr.length)];
 
 export async function say(interaction, content, reactions = []) {

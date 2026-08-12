@@ -7,6 +7,8 @@ export { InsufficientFunds };
 export class BetError extends Error {}
 
 const MAX_BET = 1_000_000;
+export const XP_PLAY = 5;
+export const XP_WIN = 10;
 
 export async function resolveBet(discordId, username, raw) {
   const user = await getOrCreate(discordId, username);
@@ -30,12 +32,12 @@ export async function play(discordId, username, bet, type, resolver) {
     const user = await getOrCreate(discordId, username, conn);
     const ref = `${type}:${user.id}:${Date.now()}`;
 
-    await mutate(user.id, { type, amount: -bet, reference: `${ref}:bet` }, conn);
+    await mutate(user.id, { type, amount: -bet, reference: `${ref}:bet`, xp: XP_PLAY }, conn);
     const luck = await getLuck(user.id, conn);
     const outcome = resolver(luck);
     let balance;
     if (outcome.payout > 0) {
-      const r = await mutate(user.id, { type: `${type}_win`, amount: outcome.payout, reference: `${ref}:win` }, conn);
+      const r = await mutate(user.id, { type: `${type}_win`, amount: outcome.payout, reference: `${ref}:win`, xp: XP_WIN }, conn);
       balance = r.balance;
     } else {
       const [[u]] = await conn.query("SELECT coins FROM users WHERE id = ?", [user.id]);

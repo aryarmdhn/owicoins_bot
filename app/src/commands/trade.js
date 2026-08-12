@@ -2,7 +2,7 @@ import { ActionRowBuilder, ButtonBuilder, ButtonStyle, StringSelectMenuBuilder }
 import pool from "../db/pool.js";
 import { getOrCreate } from "../repositories/users.js";
 import * as svc from "../services/tradesession.js";
-import { say, fmt, RARITY_EMOJI as EMOJI } from "../lib/owo.js";
+import { say, fmt, iconFor } from "../lib/owo.js";
 
 // kept for compatibility with older imports
 export const confirms = new Map();
@@ -20,7 +20,7 @@ async function inventoryOptions(discordId, username) {
 }
 
 function sideText(side) {
-  const items = [...side.items.values()].map((i) => `${EMOJI[i.rarity] ?? ""} ${i.name} ×${i.qty}`);
+  const items = [...side.items.values()].map((i) => `${iconFor(i.name, i.rarity)} ${i.name} ×${i.qty}`);
   const parts = [...items];
   if (side.coins > 0) parts.push(`<:owicoin:1537023515927117874> ${fmt(side.coins)} OwiCoins`);
   return parts.length ? parts.join("\n") : "_nothing yet_";

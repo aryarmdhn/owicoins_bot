@@ -1,6 +1,6 @@
 import { EmbedBuilder } from "discord.js";
 import { pull, InsufficientFunds } from "../services/gacha.js";
-import { say, fmt, sleep, RARITY_EMOJI as EMOJI, RARITY_COLOR as COLOR } from "../lib/owo.js";
+import { say, fmt, sleep, iconFor, RARITY_COLOR as COLOR } from "../lib/owo.js";
 
 export const data = { name: "pull" };
 
@@ -41,13 +41,13 @@ export async function execute(interaction) {
     if (count === 1) {
       const c = r.results[0];
       embed.setDescription(
-        `${EMOJI[c.rarity]} **${c.name}**\n_${c.rarity}_${HIGH.has(c.rarity) ? " · 🎉 **RARE PULL!**" : ""}`
+        `${iconFor(c.name, c.rarity)} **${c.name}**\n_${c.rarity}_${HIGH.has(c.rarity) ? " · 🎉 **RARE PULL!**" : ""}`
       );
     } else {
       const lines = r.results
         .slice()
         .sort((a, b) => ORDER.indexOf(a.rarity) - ORDER.indexOf(b.rarity))
-        .map((c) => `${EMOJI[c.rarity]} **${c.name}** · _${c.rarity}_`)
+        .map((c) => `${iconFor(c.name, c.rarity)} **${c.name}** · _${c.rarity}_`)
         .join("\n");
       embed.setDescription(lines);
       if (hasHigh) embed.addFields({ name: "\u200b", value: "🎉 **RARE PULL!**" });

@@ -1,6 +1,6 @@
 import { EmbedBuilder } from "discord.js";
 import pool from "../db/pool.js";
-import { fmt, RARITY_EMOJI as EMOJI, RARITY_COLOR as COLOR } from "../lib/owo.js";
+import { fmt, iconFor, RARITY_COLOR as COLOR } from "../lib/owo.js";
 
 export const data = { name: "item" };
 
@@ -22,7 +22,7 @@ export async function execute(interaction) {
 
   const embed = new EmbedBuilder()
     .setColor(COLOR[c.rarity] ?? 0x5865f2)
-    .setTitle(`${EMOJI[c.rarity] ?? ""} ${c.name}`)
+    .setTitle(`${iconFor(c.name, c.rarity)} ${c.name}`)
     .setDescription(c.description || "_no description_")
     .addFields(
       { name: "Rarity", value: c.rarity, inline: true },

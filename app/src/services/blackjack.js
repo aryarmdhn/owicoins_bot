@@ -1,6 +1,7 @@
 import pool from "../db/pool.js";
 import { getOrCreate } from "../repositories/users.js";
 import { mutate, InsufficientFunds } from "./economy.js";
+import { XP_PLAY, XP_WIN } from "./gamble.js";
 import { handValue, isBlackjack } from "../lib/rules.js";
 
 export { InsufficientFunds, handValue };
@@ -18,7 +19,7 @@ export async function start(discordId, username, bet) {
 
   const user = await getOrCreate(discordId, username);
   if (user.coins < bet) throw new BjError(`You only have ${user.coins.toLocaleString()} OwiCoins.`);
-  await mutate(user.id, { type: "bj", amount: -bet, reference: `bj:${user.id}:${Date.now()}` });
+  await mutate(user.id, { type: "bj", amount: -bet, reference: `bj:${user.id}:${Date.now()}`, xp: XP_PLAY });
 
   const g = { userId: user.id, bet, player: [drawCard(), drawCard()], dealer: [drawCard(), drawCard()], over: false };
   games.set(discordId, g);
@@ -62,7 +63,7 @@ async function settle(discordId, g) {
 
   let balance;
   if (payout > 0) {
-    const r = await mutate(g.userId, { type: "bj_win", amount: payout, reference: `bj:${g.userId}:win:${Date.now()}` });
+    const r = await mutate(g.userId, { type: "bj_win", amount: payout, reference: `bj:${g.userId}:win:${Date.now()}`, xp: XP_WIN });
     balance = r.balance;
   } else {
     const [[u]] = await pool.query("SELECT coins FROM users WHERE id = ?", [g.userId]);

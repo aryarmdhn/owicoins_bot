@@ -1,7 +1,7 @@
 import { EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle } from "discord.js";
 import { catalog } from "../repositories/collection.js";
 import { getOrCreate } from "../repositories/users.js";
-import { fmt, RARITY_EMOJI as EMOJI, RARITY_COLOR as COLOR } from "../lib/owo.js";
+import { fmt, PET_EMOJI, iconFor, RARITY_COLOR as COLOR } from "../lib/owo.js";
 
 export const data = { name: "collection" };
 
@@ -11,18 +11,20 @@ export async function render(ownerDiscordId, username, { page, rarity, category 
 
   if (!item) return { content: "📖 no collectibles match that filter~", embeds: [], components: [] };
 
+  const petEmoji = PET_EMOJI[item.name] ?? null;
+  const icon = iconFor(item.name, item.rarity);
+  const rarityLabel = petEmoji ? `${petEmoji} ${item.rarity}` : item.rarity;
   const embed = new EmbedBuilder()
     .setColor(COLOR[item.rarity] ?? 0x5865f2)
     .setAuthor({ name: `📖 Collection · ${cur}/${total} · owned ${fmt(owned)}/${fmt(total)}` })
-    .setTitle(`${item.owned ? "✅" : "❌"} ${EMOJI[item.rarity] ?? ""} ${item.name}`)
+    .setTitle(`${item.owned ? "✅" : "❌"} ${icon} ${item.name}`)
     .setDescription(item.description || "_no description_")
     .addFields(
-      { name: "Rarity", value: item.rarity, inline: true },
+      { name: "Rarity", value: rarityLabel, inline: true },
       { name: "⚔️ Power", value: fmt(item.power), inline: true },
       { name: "Value", value: `<:owicoin:1537023515927117874> ${fmt(item.base_value)}`, inline: true }
     )
     .setFooter({ text: item.owned ? "You own this!" : "Not owned yet" });
-  if (item.image_url) embed.setImage(item.image_url);
 
   const id = (p) => `col:${ownerDiscordId}:${p}:${rarity ?? ""}:${category ?? ""}`;
   const row = new ActionRowBuilder().addComponents(

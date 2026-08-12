@@ -1,5 +1,5 @@
 import { fuse, FusionError, FUSE_COST } from "../services/fusion.js";
-import { say, RARITY_EMOJI as EMOJI } from "../lib/owo.js";
+import { say, iconFor } from "../lib/owo.js";
 
 export const data = { name: "fuse" };
 
@@ -15,7 +15,7 @@ export async function execute(interaction) {
     const react = ["Legendary", "Mythic", "Immortal"].includes(r.targetRarity) ? ["🎉", "✨"] : ["🔮"];
     await say(
       interaction,
-      `🔮 <@${u.id}> fused **${r.cost}× ${r.consumed.name}** into ${EMOJI[r.reward.rarity] ?? ""} **${r.reward.name}** (${r.reward.rarity})!`,
+      `🔮 <@${u.id}> fused **${r.cost}× ${r.consumed.name}** into ${iconFor(r.reward.name, r.reward.rarity)} **${r.reward.name}** (${r.reward.rarity})!`,
       react
     );
   } catch (e) {

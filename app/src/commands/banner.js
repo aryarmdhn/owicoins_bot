@@ -1,6 +1,6 @@
 import { pull, InsufficientFunds } from "../services/gacha.js";
 import { getSetting } from "../services/settings.js";
-import { say, fmt, RARITY_EMOJI as EMOJI } from "../lib/owo.js";
+import { say, fmt, iconFor } from "../lib/owo.js";
 
 export const data = { name: "banner" };
 
@@ -27,9 +27,9 @@ export async function execute(interaction) {
     if (count === 1) {
       const c = r.results[0];
       const hype = c.is_limited ? " 🌟 **LIMITED!**" : "";
-      content = `🎡 <@${u.id}> got ${EMOJI[c.rarity] ?? ""} **${c.name}** (${c.rarity})!${hype}\n<:owicoin:1537023515927117874> balance: **${fmt(r.balance)} OwiCoins**`;
+      content = `🎡 <@${u.id}> got ${iconFor(c.name, c.rarity)} **${c.name}** (${c.rarity})!${hype}\n<:owicoin:1537023515927117874> balance: **${fmt(r.balance)} OwiCoins**`;
     } else {
-      const lines = r.results.map((c) => `${EMOJI[c.rarity] ?? ""} ${c.name}${c.is_limited ? " 🌟" : ""}`).join(" · ");
+      const lines = r.results.map((c) => `${iconFor(c.name, c.rarity)} ${c.name}${c.is_limited ? " 🌟" : ""}`).join(" · ");
       content = `🎡 <@${u.id}> pulled **${count}×** on ${season}:\n${lines}\n<:owicoin:1537023515927117874> balance: **${fmt(r.balance)} OwiCoins**`;
     }
     await msg?.edit?.({ content, allowedMentions: { parse: [] } }).catch(() => {});
