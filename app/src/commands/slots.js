@@ -1,18 +1,19 @@
 import { play, resolveBet, BetError, InsufficientFunds } from "../services/gamble.js";
-import { slots, SLOT_SYMBOLS } from "../lib/rules.js";
+import { slots } from "../lib/rules.js";
 import { say, fmt, sleep } from "../lib/owo.js";
 
 export const data = { name: "slots" };
 
-const edit = (msg, content) => msg?.edit?.({ content, allowedMentions: { parse: [] } }).catch(() => {});
-const rnd = () => SLOT_SYMBOLS[Math.floor(Math.random() * SLOT_SYMBOLS.length)];
+const SPIN = "<a:slot_spin_loop:1537012877356044358>";
 
-// single payline of 3 reels. `reels[i]` is null while spinning, or the locked symbol.
+const edit = (msg, content) => msg?.edit?.({ content, allowedMentions: { parse: [] } }).catch(() => {});
+
+// single payline of 3 reels. `reels[i]` is null while spinning (shows GIF), or the locked symbol.
 function board(reels, note) {
-  const row = reels.map((s) => s ?? rnd()).join(" | ");
+  const row = reels.map((s) => s ?? SPIN).join("　");
   return [
-    "🎰 **｡･:*:･ﾟ SLOTS ﾟ･:*:･｡**",
-    `▶ | ${row} | ◀`,
+    "**｡･:*:･ﾟ SLOTS ﾟ･:*:･｡**",
+    `▶　${row}　◀`,
     note,
   ].join("\n");
 }
@@ -39,15 +40,12 @@ export async function execute(interaction) {
   const spin = `<@${u.id}> bet 💰 **${fmt(bet)} OwiCoins** — rolling…`;
   const msg = await interaction.reply({ content: board([null, null, null], spin) });
 
-  // stop reels left → right; each reel spins a few frames before locking
+  // GIF spins in every slot; lock left → right (1 edit per reel, no frame spam)
   const reels = [null, null, null];
   for (let i = 0; i < 3; i++) {
-    for (let f = 0; f < 3; f++) {
-      await sleep(280);
-      await edit(msg, board(reels, `reeling… ${"🎡".repeat(i + 1)}`));
-    }
+    await sleep(800);
     reels[i] = r.reels[i];
-    await edit(msg, board(reels, `reel ${i + 1} locked ✔`));
+    await edit(msg, board(reels, i === 2 ? "🎲 …" : `reel ${i + 1} locked ✔`));
   }
   await sleep(300);
 
