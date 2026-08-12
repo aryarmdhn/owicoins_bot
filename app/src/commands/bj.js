@@ -8,7 +8,7 @@ export const data = { name: "bj" };
 
 const COLOR = { win: 0x57f287, lose: 0xed4245, push: 0xfaa61a, playing: 0x5865f2 };
 
-function embed(g, { hideDealer = true, result = null, outcome = null, dealerCards = null } = {}) {
+function embed(g, username, { hideDealer = true, result = null, outcome = null, dealerCards = null } = {}) {
   const dealerVal = hideDealer ? "?" : handValue(g.dealer);
   const color = outcome
     ? (["win", "blackjack", "dealer_bust"].includes(outcome) ? COLOR.win
@@ -19,29 +19,29 @@ function embed(g, { hideDealer = true, result = null, outcome = null, dealerCard
     .setTitle("🃏 Blackjack")
     .setDescription(`${CHIP} Bet: **${fmt(g.bet)} OwiCoins**`)
     .addFields(
-      { name: `🤖 Dealer (${dealerVal})`, value: dealerCards ?? hand(g.dealer, { hideSecond: hideDealer }) },
-      { name: `🧑 You (${handValue(g.player)})`, value: hand(g.player) },
+      { name: `Dealer [${dealerVal}]`, value: dealerCards ?? hand(g.dealer, { hideSecond: hideDealer }), inline: true },
+      { name: `${username} [${handValue(g.player)}]`, value: hand(g.player), inline: true },
     )
     .setFooter({ text: "Gacha Bot" });
   if (result) e.addFields({ name: "\u200b", value: result });
   return e;
 }
 
-export function render(discordId, g, opts = {}) {
+export function render(discordId, username, g, opts = {}) {
   const buttons = new ActionRowBuilder().addComponents(
     new ButtonBuilder().setCustomId(`bj:${discordId}:hit`).setLabel("Hit").setStyle(ButtonStyle.Success).setDisabled(g.over),
     new ButtonBuilder().setCustomId(`bj:${discordId}:stand`).setLabel("Stand").setStyle(ButtonStyle.Danger).setDisabled(g.over)
   );
-  return { embeds: [embed(g, opts)], components: g.over ? [] : [buttons], allowedMentions: { parse: [] } };
+  return { embeds: [embed(g, username, opts)], components: g.over ? [] : [buttons], allowedMentions: { parse: [] } };
 }
 
 // flip the face-down dealer card: cardback → flip GIF → revealed hand
-export async function flipReveal(msg, discordId, g, result, outcome) {
+export async function flipReveal(msg, discordId, username, g, result, outcome) {
   if (!msg?.edit) return;
   const shown = hand(g.dealer, { hideSecond: true }).split(" ")[0];
-  await msg.edit({ embeds: [embed(g, { dealerCards: `${shown} ${FLIP}` })], components: [], allowedMentions: { parse: [] } }).catch(() => {});
+  await msg.edit({ embeds: [embed(g, username, { dealerCards: `${shown} ${FLIP}` })], components: [], allowedMentions: { parse: [] } }).catch(() => {});
   await sleep(900);
-  await msg.edit(render(discordId, g, { hideDealer: false, result, outcome })).catch(() => {});
+  await msg.edit(render(discordId, username, g, { hideDealer: false, result, outcome })).catch(() => {});
 }
 
 export function resultText(o) {
@@ -62,8 +62,8 @@ export async function execute(interaction) {
   try {
     const bet = await resolveBet(u.id, u.username, interaction.options.getString("bet"));
     const res = await start(u.id, u.username, bet);
-    const msg = await interaction.reply(render(u.id, res.g, { hideDealer: true }));
-    if (res.done) await flipReveal(msg, u.id, res.g, resultText(res), res.outcome); // natural blackjack
+    const msg = await interaction.reply(render(u.id, u.username, res.g, { hideDealer: true }));
+    if (res.done) await flipReveal(msg, u.id, u.username, res.g, resultText(res), res.outcome); // natural blackjack
   } catch (e) {
     if (e instanceof BjError || e instanceof BetError) return void (await say(interaction, `❌ <@${u.id}> ${e.message}`));
     throw e;

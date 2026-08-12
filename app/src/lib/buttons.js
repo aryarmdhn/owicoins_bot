@@ -133,15 +133,16 @@ async function handleBlackjack(interaction, [ownerId, action]) {
     await interaction.reply({ content: "This isn't your game.", ephemeral: true });
     return;
   }
+  const name = interaction.user.username;
   try {
     const res = action === "hit" ? await bjSvc.hit(ownerId) : await bjSvc.stand(ownerId);
     if (res.done && action === "stand") {
-      await interaction.update(renderBj(ownerId, res.g, { hideDealer: true }));
-      await bjFlipReveal(interaction.message, ownerId, res.g, bjResult(res), res.outcome);
+      await interaction.update(renderBj(ownerId, name, res.g, { hideDealer: true }));
+      await bjFlipReveal(interaction.message, ownerId, name, res.g, bjResult(res), res.outcome);
     } else if (res.done) {
-      await interaction.update(renderBj(ownerId, res.g, { hideDealer: false, result: bjResult(res), outcome: res.outcome }));
+      await interaction.update(renderBj(ownerId, name, res.g, { hideDealer: false, result: bjResult(res), outcome: res.outcome }));
     } else {
-      await interaction.update(renderBj(ownerId, res.g));
+      await interaction.update(renderBj(ownerId, name, res.g));
     }
   } catch (e) {
     if (e instanceof bjSvc.BjError) {
