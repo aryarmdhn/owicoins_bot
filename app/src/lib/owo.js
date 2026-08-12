@@ -31,7 +31,7 @@ export const PET_EMOJI = {
   "Kraken": "<:140_Kraken:1537130743606673488>",
   "Leviathan": "<:141_Leviathan:1537130745963872456>",
   "Nemean Lion": "<:142_Nemean_Lion:1537130748472197211>",
-  "Celestial Unicorn": "<:143_Celestial_Unicorn:1537130751043182602>",
+  "Celestial Steed": "<:143_Celestial_Steed:1537130751043182602>",
   "Phoenix": "<:144_Phoenix:1537130752888803429>",
   "Fenrir": "<:145_Fenrir:1537130754977562758>",
   "Jörmungandr": "<:146_J_rmungandr:1537130757422841896>",
