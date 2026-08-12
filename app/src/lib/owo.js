@@ -1,8 +1,13 @@
 export const fmt = (n) => Number(n).toLocaleString("en-US");
 
 export const RARITY_EMOJI = {
-  Common: "⚪", Uncommon: "🟢", Rare: "🔵", Epic: "🟣",
-  Legendary: "🟡", Mythic: "🔴", Immortal: "🌟",
+  Common: "<:gacha_1_common:1537027079730630716>",
+  Uncommon: "<:gacha_2_uncommon:1537027081739698196>",
+  Rare: "<:gacha_3_rare:1537027084872974366>",
+  Epic: "<:gacha_4_epic:1537027086999625810>",
+  Legendary: "<:gacha_5_legendary:1537027090120052736>",
+  Mythic: "<:gacha_6_mythic:1537027092871647232>",
+  Immortal: "<:gacha_7_immortal:1537027095325048832>",
 };
 
 export const RARITY_COLOR = {

@@ -1,11 +1,17 @@
+import { EmbedBuilder } from "discord.js";
 import { pull, InsufficientFunds } from "../services/gacha.js";
-import { say, fmt, sleep, RARITY_EMOJI as EMOJI } from "../lib/owo.js";
+import { say, fmt, sleep, RARITY_EMOJI as EMOJI, RARITY_COLOR as COLOR } from "../lib/owo.js";
 
 export const data = { name: "pull" };
 
+const ORDER = ["Immortal", "Mythic", "Legendary", "Epic", "Rare", "Uncommon", "Common"];
 const HIGH = new Set(["Legendary", "Mythic", "Immortal"]);
-const SPIN = ["🎰", "🎲", "✨", "🎁"];
-const edit = (msg, content) => msg?.edit?.({ content, allowedMentions: { parse: [] } }).catch(() => {});
+const SPIN = "<a:gacha_pull:1537027077914624110>";
+const COIN = "<:owicoin:1537023515927117874>";
+
+function bestRarity(results) {
+  return ORDER.find((rar) => results.some((c) => c.rarity === rar)) ?? "Common";
+}
 
 export async function execute(interaction) {
   const u = interaction.user;
@@ -14,29 +20,36 @@ export async function execute(interaction) {
     await say(interaction, `❌ <@${u.id}> pull count must be **1-10**!`);
     return;
   }
-  const msg = await interaction.reply({ content: `${SPIN[0]} rolling the gacha…` });
+  const msg = await interaction.reply({ content: `${SPIN} rolling the gacha…` });
   try {
-    for (let i = 1; i < SPIN.length; i++) {
-      await sleep(420);
-      await edit(msg, `${SPIN[i]} ${"◆".repeat(i)}${"◇".repeat(SPIN.length - i)} rolling…`);
-    }
-    await sleep(450);
+    await sleep(1600);
 
     const r = await pull(u.id, u.username, count);
     const hasHigh = r.results.some((c) => HIGH.has(c.rarity));
     const react = hasHigh ? ["🎉", "✨"] : ["🎴"];
 
-    let content;
+    const embed = new EmbedBuilder()
+      .setColor(COLOR[bestRarity(r.results)])
+      .setTitle(`🎴 Gacha Pull ${count > 1 ? `×${count}` : ""}`.trim())
+      .setFooter({ text: "Gacha Bot" });
+
     if (count === 1) {
       const c = r.results[0];
-      const hype = HIGH.has(c.rarity) ? " 🎉 **RARE PULL!**" : "";
-      content = `🎴 <@${u.id}> got ${EMOJI[c.rarity]} **${c.name}** (${c.rarity})!${hype}\n<:owicoin:1537023515927117874> balance: **${fmt(r.balance)} OwiCoins**`;
+      embed.setDescription(
+        `${EMOJI[c.rarity]} **${c.name}**\n_${c.rarity}_${HIGH.has(c.rarity) ? " · 🎉 **RARE PULL!**" : ""}`
+      );
     } else {
-      const lines = r.results.map((c) => `${EMOJI[c.rarity]} ${c.name}`).join(" · ");
-      content = `🎴 <@${u.id}> pulled **${count}×**:\n${lines}\n<:owicoin:1537023515927117874> balance: **${fmt(r.balance)} OwiCoins**`;
+      const lines = r.results
+        .slice()
+        .sort((a, b) => ORDER.indexOf(a.rarity) - ORDER.indexOf(b.rarity))
+        .map((c) => `${EMOJI[c.rarity]} **${c.name}** · _${c.rarity}_`)
+        .join("\n");
+      embed.setDescription(lines);
+      if (hasHigh) embed.addFields({ name: "\u200b", value: "🎉 **RARE PULL!**" });
     }
+    embed.addFields({ name: "\u200b", value: `${COIN} balance: **${fmt(r.balance)} OwiCoins**` });
 
-    await (msg?.edit?.({ content, allowedMentions: { parse: [] } }).catch(() => {}));
+    await (msg?.edit?.({ content: "", embeds: [embed], allowedMentions: { parse: [] } }).catch(() => {}));
     for (const emoji of react) await msg?.react?.(emoji).catch(() => {});
   } catch (e) {
     if (e instanceof InsufficientFunds) {
