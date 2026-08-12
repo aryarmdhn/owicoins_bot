@@ -57,7 +57,7 @@ export async function handleButton(interaction) {
     return;
   }
 
-  const BROWSE = new Set(["inv", "col", "invsort", "colsort", "invrar", "colrar", "invsearch", "colsearch", "invq", "colq"]);
+  const BROWSE = new Set(["inv", "col", "invsort", "colsort", "invrar", "colrar"]);
   if (BROWSE.has(kind)) {
     await handleBrowse(interaction, kind, args);
     return;
@@ -77,22 +77,7 @@ async function handleBrowse(interaction, kind, args) {
     await interaction.reply({ content: "This isn't yours.", ephemeral: true });
     return;
   }
-  const sub = kind.slice(base.length); // "", "sort", "rar", "search", "q"
-
-  // search button → open modal
-  if (sub === "search") {
-    const [, rarity, sort] = args;
-    const modal = new ModalBuilder()
-      .setCustomId(`${base}q:${ownerId}:${rarity ?? ""}:${sort ?? ""}`)
-      .setTitle("Search collectibles");
-    modal.addComponents(
-      new ActionRowBuilder().addComponents(
-        new TextInputBuilder().setCustomId("q").setLabel("Name contains").setStyle(TextInputStyle.Short).setRequired(false).setMaxLength(60)
-      )
-    );
-    await interaction.showModal(modal);
-    return;
-  }
+  const sub = kind.slice(base.length); // "", "sort", "rar"
 
   let opts;
   if (sub === "sort") {
@@ -102,10 +87,6 @@ async function handleBrowse(interaction, kind, args) {
     const [, sort, bq] = args;
     const chosen = interaction.values[0];
     opts = { page: 1, rarity: chosen === "all" ? null : chosen, sort: sort || null, q: decQ(bq) };
-  } else if (sub === "q") {
-    const [, rarity, sort] = args;
-    const typed = interaction.fields.getTextInputValue("q").trim();
-    opts = { page: 1, rarity: rarity || null, sort: sort || null, q: typed || null };
   } else {
     // nav button: base:owner:page:rarity:sort:bq
     const [, page, rarity, sort, bq] = args;

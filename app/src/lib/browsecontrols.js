@@ -37,7 +37,6 @@ export function controls(kind, ownerId, { page, pages, rarity, sort, q }) {
 
   const btnRow = new ActionRowBuilder().addComponents(
     new ButtonBuilder().setCustomId(nav(Math.max(1, page - 1))).setLabel("◀").setStyle(ButtonStyle.Secondary).setDisabled(page <= 1),
-    new ButtonBuilder().setCustomId(`${kind}search:${ownerId}:${rarity ?? ""}:${s}`).setEmoji("🔍").setLabel("Search").setStyle(ButtonStyle.Primary),
     new ButtonBuilder().setCustomId(nav(Math.min(pages, page + 1))).setLabel("▶").setStyle(ButtonStyle.Secondary).setDisabled(page >= pages)
   );
 
