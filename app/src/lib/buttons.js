@@ -137,9 +137,9 @@ async function handleBlackjack(interaction, [ownerId, action]) {
     const res = action === "hit" ? await bjSvc.hit(ownerId) : await bjSvc.stand(ownerId);
     if (res.done && action === "stand") {
       await interaction.update(renderBj(ownerId, res.g, { hideDealer: true }));
-      await bjFlipReveal(interaction.message, ownerId, res.g, bjResult(res));
+      await bjFlipReveal(interaction.message, ownerId, res.g, bjResult(res), res.outcome);
     } else if (res.done) {
-      await interaction.update(renderBj(ownerId, res.g, { hideDealer: false, result: bjResult(res) }));
+      await interaction.update(renderBj(ownerId, res.g, { hideDealer: false, result: bjResult(res), outcome: res.outcome }));
     } else {
       await interaction.update(renderBj(ownerId, res.g));
     }

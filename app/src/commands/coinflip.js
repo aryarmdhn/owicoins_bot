@@ -4,6 +4,8 @@ import { say, fmt, sleep } from "../lib/owo.js";
 
 export const data = { name: "cf" };
 
+const SPIN = "<a:coin_spin_loop:1537020201676316692>";
+const FACE = { heads: "<:coin_heads:1537020191035367444>", tails: "<:coin_tails:1537020203857354752>" };
 const edit = (msg, content) => msg?.edit?.({ content, allowedMentions: { parse: [] } }).catch(() => {});
 
 export async function execute(interaction) {
@@ -34,15 +36,14 @@ export async function execute(interaction) {
     throw e;
   }
 
-  const msg = await interaction.reply({ content: `<@${u.id}> spent 💰 **${fmt(bet)} OwiCoins** and chose **${guess}**\nThe coin spins... 🪙` });
-  await sleep(700);
-  await edit(msg, `<@${u.id}> spent 💰 **${fmt(bet)} OwiCoins** and chose **${guess}**\nThe coin spins... 🌀`);
-  await sleep(700);
+  const head = `<@${u.id}> spent 💰 **${fmt(bet)} OwiCoins** and chose **${guess}**`;
+  const msg = await interaction.reply({ content: `${head}\nThe coin spins... ${SPIN}` });
+  await sleep(1500);
 
   const face = r.result === "heads" ? "HEADS" : "TAILS";
   const tail = r.win
-    ? `landed on **${face}** and you won 💰 **+${fmt(r.payout - r.bet)} OwiCoins**!!`
-    : `landed on **${face}**... you lost 💰 **${fmt(r.bet)} OwiCoins** :c`;
-  await edit(msg, `<@${u.id}> spent 💰 **${fmt(bet)} OwiCoins** and chose **${guess}**\nThe coin spins... ${tail}\nbalance: 💰 ${fmt(r.balance)} OwiCoins`);
+    ? `landed on ${FACE[r.result]} **${face}** and you won 💰 **+${fmt(r.payout - r.bet)} OwiCoins**!!`
+    : `landed on ${FACE[r.result]} **${face}**... you lost 💰 **${fmt(r.bet)} OwiCoins** :c`;
+  await edit(msg, `${head}\n${tail}\nbalance: 💰 ${fmt(r.balance)} OwiCoins`);
   await msg?.react?.(r.win ? "🎉" : "💀").catch(() => {});
 }
