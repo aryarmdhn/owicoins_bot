@@ -1,7 +1,8 @@
-import { EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle } from "discord.js";
+import { EmbedBuilder } from "discord.js";
 import { list } from "../repositories/inventory.js";
 import { getOrCreate } from "../repositories/users.js";
 import { fmt, iconFor } from "../lib/owo.js";
+import { controls } from "../lib/browsecontrols.js";
 
 export const data = { name: "inventory" };
 
@@ -23,12 +24,8 @@ export async function render(userId, ownerDiscordId, username, { page, rarity, c
     .setDescription(body)
     .setFooter({ text: `${fmt(total)} item(s) · page ${cur}/${pages} · ${bits.join(" · ")}` });
 
-  const id = (p) => `inv:${ownerDiscordId}:${p}:${rarity ?? ""}:${category ?? ""}:${sort ?? ""}:${q ?? ""}`;
-  const row = new ActionRowBuilder().addComponents(
-    new ButtonBuilder().setCustomId(id(cur - 1)).setLabel("◀").setStyle(ButtonStyle.Secondary).setDisabled(cur <= 1),
-    new ButtonBuilder().setCustomId(id(cur + 1)).setLabel("▶").setStyle(ButtonStyle.Secondary).setDisabled(cur >= pages)
-  );
-  return { content: "", embeds: [embed], attachments: [], files: [], components: pages > 1 ? [row] : [] };
+  const comps = controls("inv", ownerDiscordId, { page: cur, pages, rarity, sort, q });
+  return { content: "", embeds: [embed], attachments: [], files: [], components: comps };
 }
 
 export async function execute(interaction) {

@@ -16,6 +16,7 @@ import { EmbedBuilder } from "discord.js";
 import { ActionRowBuilder, ButtonBuilder, ButtonStyle } from "discord.js";
 import { fmt } from "./owo.js";
 import { handleFight } from "./fighthandler.js";
+import { decQ } from "./browsecontrols.js";
 import pool from "../db/pool.js";
 
 export async function handleButton(interaction) {
@@ -56,20 +57,63 @@ export async function handleButton(interaction) {
     return;
   }
 
-  if (kind === "inv" || kind === "col") {
-    const [ownerId, page, rarity, category, sort, ...qParts] = args;
-    if (interaction.user.id !== ownerId) {
-      await interaction.reply({ content: "This isn't yours.", ephemeral: true });
-      return;
-    }
-    const q = qParts.join(":");
-    const opts = { page: Number(page), rarity: rarity || null, category: category || null, sort: sort || null, q: q || null };
-    const view =
-      kind === "inv"
-        ? await renderInventory(interaction.user.id, ownerId, interaction.user.username, opts)
-        : await renderCollection(ownerId, interaction.user.username, opts);
-    await interaction.update(view);
+  const BROWSE = new Set(["inv", "col", "invsort", "colsort", "invrar", "colrar", "invsearch", "colsearch", "invq", "colq"]);
+  if (BROWSE.has(kind)) {
+    await handleBrowse(interaction, kind, args);
+    return;
   }
+}
+
+async function renderBrowse(base, ownerId, username, opts) {
+  return base === "inv"
+    ? renderInventory(ownerId, ownerId, username, opts)
+    : renderCollection(ownerId, username, opts);
+}
+
+async function handleBrowse(interaction, kind, args) {
+  const base = kind.startsWith("inv") ? "inv" : "col";
+  const ownerId = args[0];
+  if (interaction.user.id !== ownerId) {
+    await interaction.reply({ content: "This isn't yours.", ephemeral: true });
+    return;
+  }
+  const sub = kind.slice(base.length); // "", "sort", "rar", "search", "q"
+
+  // search button → open modal
+  if (sub === "search") {
+    const [, rarity, sort] = args;
+    const modal = new ModalBuilder()
+      .setCustomId(`${base}q:${ownerId}:${rarity ?? ""}:${sort ?? ""}`)
+      .setTitle("Search collectibles");
+    modal.addComponents(
+      new ActionRowBuilder().addComponents(
+        new TextInputBuilder().setCustomId("q").setLabel("Name contains").setStyle(TextInputStyle.Short).setRequired(false).setMaxLength(60)
+      )
+    );
+    await interaction.showModal(modal);
+    return;
+  }
+
+  let opts;
+  if (sub === "sort") {
+    const [, rarity, bq] = args;
+    opts = { page: 1, rarity: rarity || null, sort: interaction.values[0], q: decQ(bq) };
+  } else if (sub === "rar") {
+    const [, sort, bq] = args;
+    const chosen = interaction.values[0];
+    opts = { page: 1, rarity: chosen === "all" ? null : chosen, sort: sort || null, q: decQ(bq) };
+  } else if (sub === "q") {
+    const [, rarity, sort] = args;
+    const typed = interaction.fields.getTextInputValue("q").trim();
+    opts = { page: 1, rarity: rarity || null, sort: sort || null, q: typed || null };
+  } else {
+    // nav button: base:owner:page:rarity:sort:bq
+    const [, page, rarity, sort, bq] = args;
+    opts = { page: Number(page), rarity: rarity || null, sort: sort || null, q: decQ(bq) };
+  }
+
+  const view = await renderBrowse(base, ownerId, interaction.user.username, opts);
+  await interaction.update(view);
 }
 
 async function handleQuest(interaction, [ownerId]) {

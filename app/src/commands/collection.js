@@ -1,7 +1,8 @@
-import { EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle } from "discord.js";
+import { EmbedBuilder } from "discord.js";
 import { catalog } from "../repositories/collection.js";
 import { getOrCreate } from "../repositories/users.js";
-import { fmt, PET_EMOJI, iconFor, RARITY_COLOR as COLOR } from "../lib/owo.js";
+import { fmt, iconFor } from "../lib/owo.js";
+import { controls } from "../lib/browsecontrols.js";
 
 export const data = { name: "collection" };
 
@@ -25,12 +26,8 @@ export async function render(ownerDiscordId, username, { page, rarity, category,
     .setDescription(body)
     .setFooter({ text: `owned ${fmt(owned)}/${fmt(total)} · page ${cur}/${pages} · ${bits.join(" · ")}` });
 
-  const id = (p) => `col:${ownerDiscordId}:${p}:${rarity ?? ""}:${category ?? ""}:${sort ?? ""}:${q ?? ""}`;
-  const row = new ActionRowBuilder().addComponents(
-    new ButtonBuilder().setCustomId(id(cur - 1)).setLabel("◀").setStyle(ButtonStyle.Secondary).setDisabled(cur <= 1),
-    new ButtonBuilder().setCustomId(id(cur + 1)).setLabel("▶").setStyle(ButtonStyle.Secondary).setDisabled(cur >= pages)
-  );
-  return { embeds: [embed], components: pages > 1 ? [row] : [] };
+  const comps = controls("col", ownerDiscordId, { page: cur, pages, rarity, sort, q });
+  return { embeds: [embed], components: comps };
 }
 
 export async function execute(interaction) {
