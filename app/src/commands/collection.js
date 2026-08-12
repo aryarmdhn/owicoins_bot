@@ -5,28 +5,27 @@ import { fmt, PET_EMOJI, iconFor, RARITY_COLOR as COLOR } from "../lib/owo.js";
 
 export const data = { name: "collection" };
 
-export async function render(ownerDiscordId, username, { page, rarity, category }) {
+export async function render(ownerDiscordId, username, { page, rarity, category, sort, q }) {
   const user = await getOrCreate(ownerDiscordId, username);
-  const { item, page: cur, pages, total, owned } = await catalog(user.id, { page, rarity, category });
+  const { rows, page: cur, pages, total, owned } = await catalog(user.id, { page, rarity, category, sort, q });
 
-  if (!item) return { content: "📖 no collectibles match that filter~", embeds: [], components: [] };
+  if (!rows.length) return { content: "📖 no collectibles match that filter~", embeds: [], components: [] };
 
-  const petEmoji = PET_EMOJI[item.name] ?? null;
-  const icon = iconFor(item.name, item.rarity);
-  const rarityLabel = petEmoji ? `${petEmoji} ${item.rarity}` : item.rarity;
+  const body = rows
+    .map((c) => `${c.owned ? "✅" : "🔒"} ${iconFor(c.name, c.rarity)} **${c.name}** · _${c.rarity}_ · ⚔️ ${fmt(c.power)} · <:owicoin:1537023515927117874> ${fmt(c.base_value)}`)
+    .join("\n");
+
+  const bits = [`sort: ${sort ?? "value"}`];
+  if (rarity) bits.push(`rarity: ${rarity}`);
+  if (q) bits.push(`search: "${q}"`);
+
   const embed = new EmbedBuilder()
-    .setColor(COLOR[item.rarity] ?? 0x5865f2)
-    .setAuthor({ name: `📖 Collection · ${cur}/${total} · owned ${fmt(owned)}/${fmt(total)}` })
-    .setTitle(`${item.owned ? "✅" : "❌"} ${icon} ${item.name}`)
-    .setDescription(item.description || "_no description_")
-    .addFields(
-      { name: "Rarity", value: rarityLabel, inline: true },
-      { name: "⚔️ Power", value: fmt(item.power), inline: true },
-      { name: "Value", value: `<:owicoin:1537023515927117874> ${fmt(item.base_value)}`, inline: true }
-    )
-    .setFooter({ text: item.owned ? "You own this!" : "Not owned yet" });
+    .setColor(0x5865f2)
+    .setTitle("📖 Collection")
+    .setDescription(body)
+    .setFooter({ text: `owned ${fmt(owned)}/${fmt(total)} · page ${cur}/${pages} · ${bits.join(" · ")}` });
 
-  const id = (p) => `col:${ownerDiscordId}:${p}:${rarity ?? ""}:${category ?? ""}`;
+  const id = (p) => `col:${ownerDiscordId}:${p}:${rarity ?? ""}:${category ?? ""}:${sort ?? ""}:${q ?? ""}`;
   const row = new ActionRowBuilder().addComponents(
     new ButtonBuilder().setCustomId(id(cur - 1)).setLabel("◀").setStyle(ButtonStyle.Secondary).setDisabled(cur <= 1),
     new ButtonBuilder().setCustomId(id(cur + 1)).setLabel("▶").setStyle(ButtonStyle.Secondary).setDisabled(cur >= pages)
@@ -35,10 +34,13 @@ export async function render(ownerDiscordId, username, { page, rarity, category 
 }
 
 export async function execute(interaction) {
+  const f = interaction.options.get("filters") ?? {};
   const view = await render(interaction.user.id, interaction.user.username, {
-    page: interaction.options.getInteger("page") ?? 1,
-    rarity: interaction.options.getString("rarity") || null,
-    category: interaction.options.getString("category") || null,
+    page: f.page ?? 1,
+    rarity: f.rarity ?? null,
+    category: f.category ?? null,
+    sort: f.sort ?? null,
+    q: f.q ?? null,
   });
   await interaction.reply(view);
 }

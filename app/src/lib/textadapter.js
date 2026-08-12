@@ -1,6 +1,7 @@
 export function makeInteraction(message, args) {
   let sent = null;
   const options = {
+    get: (n) => args[n] ?? null,
     getString: (n) => (typeof args[n] === "string" ? args[n] : null),
     getInteger: (n) => (typeof args[n] === "number" ? args[n] : null),
     getNumber: (n) => (typeof args[n] === "number" ? args[n] : null),

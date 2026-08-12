@@ -54,6 +54,9 @@ assert.deepEqual(parseArgs("sell", ["all"], noMentions), { collectible: "all", a
 assert.deepEqual(parseArgs("sell", ["golden", "eagle"], noMentions), { collectible: "golden eagle", arg2: null });
 assert.deepEqual(parseArgs("sell", ["golden", "eagle", "3"], noMentions), { collectible: "golden eagle", arg2: "3" });
 assert.deepEqual(parseArgs("sell", ["Hippo"], noMentions), { collectible: "Hippo", arg2: null });
+assert.deepEqual(parseArgs("collection", ["2", "mythic", "sort:power", "q:dragon"], noMentions), { filters: { page: 2, rarity: "mythic", category: null, sort: "power", q: "dragon" } });
+assert.deepEqual(parseArgs("inventory", ["golden", "dragon"], noMentions), { filters: { page: 1, rarity: null, category: null, sort: null, q: "golden dragon" } });
+assert.deepEqual(parseArgs("inventory", ["legendary", "rarity"], noMentions), { filters: { page: 1, rarity: "legendary", category: null, sort: "rarity", q: null } });
 
 const user = { id: "42" };
 const withMention = { mentions: { users: new Map([["42", user]]) } };

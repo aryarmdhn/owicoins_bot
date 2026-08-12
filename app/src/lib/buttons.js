@@ -57,12 +57,13 @@ export async function handleButton(interaction) {
   }
 
   if (kind === "inv" || kind === "col") {
-    const [ownerId, page, rarity, category] = args;
+    const [ownerId, page, rarity, category, sort, ...qParts] = args;
     if (interaction.user.id !== ownerId) {
       await interaction.reply({ content: "This isn't yours.", ephemeral: true });
       return;
     }
-    const opts = { page: Number(page), rarity: rarity || null, category: category || null };
+    const q = qParts.join(":");
+    const opts = { page: Number(page), rarity: rarity || null, category: category || null, sort: sort || null, q: q || null };
     const view =
       kind === "inv"
         ? await renderInventory(interaction.user.id, ownerId, interaction.user.username, opts)

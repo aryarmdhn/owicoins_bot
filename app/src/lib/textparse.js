@@ -10,16 +10,8 @@ const SCHEMA = {
   pull: [{ name: "pulls", type: "int" }],
   banner: [{ name: "pulls", type: "int" }],
   boss: [],
-  inventory: [
-    { name: "page", type: "int" },
-    { name: "rarity", type: "str" },
-    { name: "category", type: "str" },
-  ],
-  collection: [
-    { name: "page", type: "int" },
-    { name: "rarity", type: "str" },
-    { name: "category", type: "str" },
-  ],
+  inventory: [{ name: "filters", type: "filters" }],
+  collection: [{ name: "filters", type: "filters" }],
   item: [{ name: "collectible", type: "rest" }],
   fuse: [{ name: "collectible", type: "rest" }],
   sell: [{ name: "sell", type: "sell" }],
@@ -87,6 +79,27 @@ export function parseArgs(name, tokens, message) {
         values.collectible = (hasQty ? rest.slice(0, -1) : rest).join(" ").trim() || null;
         values.arg2 = hasQty ? last : null;
       }
+      ti = tokens.length;
+      continue;
+    }
+    if (spec.type === "filters") {
+      // page number + flags: sort:value|rarity|power, rarity:X, category:X, q:text (or bare words → search)
+      const RARITIES = ["common", "uncommon", "rare", "epic", "legendary", "mythic", "immortal"];
+      const SORTS = ["value", "rarity", "power", "name"];
+      const out = { page: 1, rarity: null, category: null, sort: null, q: null };
+      const words = [];
+      for (const t of tokens.slice(ti)) {
+        const m = /^(sort|rarity|category|q):(.+)$/i.exec(t);
+        if (m) {
+          const k = m[1].toLowerCase();
+          out[k] = k === "q" ? m[2] : m[2].toLowerCase();
+        } else if (/^\d+$/.test(t)) out.page = Number(t);
+        else if (RARITIES.includes(t.toLowerCase())) out.rarity = t.toLowerCase();
+        else if (SORTS.includes(t.toLowerCase())) out.sort = t.toLowerCase();
+        else words.push(t);
+      }
+      if (!out.q && words.length) out.q = words.join(" ");
+      values.filters = out;
       ti = tokens.length;
       continue;
     }
