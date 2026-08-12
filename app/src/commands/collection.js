@@ -19,7 +19,7 @@ export async function render(ownerDiscordId, username, { page, rarity, category 
     .addFields(
       { name: "Rarity", value: item.rarity, inline: true },
       { name: "⚔️ Power", value: fmt(item.power), inline: true },
-      { name: "💎 Value", value: fmt(item.base_value), inline: true }
+      { name: "Value", value: `<:owicoin:1537023515927117874> ${fmt(item.base_value)}`, inline: true }
     )
     .setFooter({ text: item.owned ? "You own this!" : "Not owned yet" });
   if (item.image_url) embed.setImage(item.image_url);

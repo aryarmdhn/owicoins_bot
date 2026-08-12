@@ -45,7 +45,7 @@ export async function execute(interaction) {
     .addFields(
       { name: "<:owicoin:1537023515927117874> OwiCoins", value: fmt(user.coins), inline: true },
       { name: "🎴 Collectibles", value: fmt(inv.count), inline: true },
-      { name: "💎 Value", value: fmt(inv.value), inline: true },
+      { name: "Value", value: `<:owicoin:1537023515927117874> ${fmt(inv.value)}`, inline: true },
       { name: "🔥 Daily Streak", value: `${user.daily_streak} day(s)`, inline: true }
     );
 

@@ -28,7 +28,7 @@ export async function execute(interaction) {
       { name: "Rarity", value: c.rarity, inline: true },
       { name: "Category", value: c.category, inline: true },
       { name: "⚔️ Power", value: fmt(c.power), inline: true },
-      { name: "💎 Value", value: fmt(c.base_value), inline: true }
+      { name: "Value", value: `<:owicoin:1537023515927117874> ${fmt(c.base_value)}`, inline: true }
     )
     .setFooter({ text: "Gacha Bot" });
 

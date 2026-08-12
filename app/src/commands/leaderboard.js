@@ -20,7 +20,7 @@ const QUERIES = {
     unit: "items",
   },
   value: {
-    label: "💎 Collection Value",
+    label: "<:owicoin:1537023515927117874> Collection Value",
     sql: `SELECT u.username, COALESCE(SUM(i.quantity*c.base_value),0) AS score
           FROM users u LEFT JOIN inventories i ON i.user_id = u.id
           LEFT JOIN collectibles c ON c.id = i.collectible_id

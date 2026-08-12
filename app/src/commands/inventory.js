@@ -10,7 +10,7 @@ export async function render(userId, ownerDiscordId, username, { page, rarity, c
   const { rows, page: cur, pages, total } = await list(user.id, { page, rarity, category });
 
   const body = rows.length
-    ? rows.map((r) => `${EMOJI[r.rarity] ?? ""} **${r.name}** ×${r.quantity} · ⚔️ ${fmt(r.power)} · 💎 ${fmt(r.base_value)}`).join("\n")
+    ? rows.map((r) => `${EMOJI[r.rarity] ?? ""} **${r.name}** ×${r.quantity} · ⚔️ ${fmt(r.power)} · <:owicoin:1537023515927117874> ${fmt(r.base_value)}`).join("\n")
     : "empty~ try `gpull 1` 🎴";
 
   const embed = new EmbedBuilder()
