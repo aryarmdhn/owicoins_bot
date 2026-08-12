@@ -17,13 +17,13 @@ export async function execute(interaction) {
     if (name.toLowerCase() === "all") {
       const r = await sellAll(u.id, u.username, arg2 || null);
       const scope = arg2 ? ` (${arg2} and below)` : "";
-      await say(interaction, `💸 <@${u.id}> sold **${fmt(r.soldCount)}** collectibles${scope} for **+${fmt(r.total)}** OwiCoins!\n💰 balance: **${fmt(r.balance)}**`, ["💰"]);
+      await say(interaction, `💸 <@${u.id}> sold **${fmt(r.soldCount)}** collectibles${scope} for **+${fmt(r.total)}** OwiCoins!\n<:owicoin:1537023515927117874> balance: **${fmt(r.balance)}**`, ["owicoin:1537023515927117874"]);
       return;
     }
 
     const qty = Number.isInteger(Number(arg2)) && Number(arg2) > 0 ? Number(arg2) : 1;
     const r = await sell(u.id, u.username, name, qty);
-    await say(interaction, `💸 <@${u.id}> sold **${r.item.name} ×${r.qty}** for **+${fmt(r.total)}** OwiCoins!\n💰 balance: **${fmt(r.balance)}**`, ["💰"]);
+    await say(interaction, `💸 <@${u.id}> sold **${r.item.name} ×${r.qty}** for **+${fmt(r.total)}** OwiCoins!\n<:owicoin:1537023515927117874> balance: **${fmt(r.balance)}**`, ["owicoin:1537023515927117874"]);
   } catch (e) {
     if (e instanceof NoSuchItem) {
       await say(interaction, `❌ <@${u.id}> no collectible named "**${name}**"`);

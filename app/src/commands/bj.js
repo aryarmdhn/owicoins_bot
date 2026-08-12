@@ -54,7 +54,7 @@ export function resultText(o) {
     bust: `💥 **BUST!** you lost **${fmt(o.g.bet)} OwiCoins**.`,
     dealer_bj: `💀 dealer has blackjack — you lost **${fmt(o.g.bet)} OwiCoins**.`,
   };
-  return `${map[o.outcome]}\n💰 balance: **${fmt(o.balance)} OwiCoins**`;
+  return `${map[o.outcome]}\n<:owicoin:1537023515927117874> balance: **${fmt(o.balance)} OwiCoins**`;
 }
 
 export async function execute(interaction) {

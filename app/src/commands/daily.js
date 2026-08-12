@@ -18,7 +18,7 @@ export async function execute(interaction) {
     const react = r.streak >= 7 ? ["🔥"] : ["🎁"];
     await say(
       interaction,
-      `${pick(LINES)} <@${u.id}>! **+${fmt(r.reward)}** OwiCoins${bonus} 💰\n🔥 streak: **${r.streak}** day(s) — balance: **${fmt(r.balance)}**`,
+      `${pick(LINES)} <@${u.id}>! **+${fmt(r.reward)}** OwiCoins${bonus} <:owicoin:1537023515927117874>\n🔥 streak: **${r.streak}** day(s) — balance: **${fmt(r.balance)}**`,
       react
     );
   } catch (e) {

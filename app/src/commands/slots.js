@@ -37,7 +37,7 @@ export async function execute(interaction) {
     throw e;
   }
 
-  const spin = `<@${u.id}> bet 💰 **${fmt(bet)} OwiCoins** — rolling…`;
+  const spin = `<@${u.id}> bet <:owicoin:1537023515927117874> **${fmt(bet)} OwiCoins** — rolling…`;
   const msg = await interaction.reply({ content: board([null, null, null], spin) });
 
   // GIF spins in every slot; lock left → right (1 edit per reel, no frame spam)
@@ -51,9 +51,9 @@ export async function execute(interaction) {
 
   const outcome = r.payout > 0
     ? (r.mult >= 10
-        ? `🎉🎉 <@${u.id}> hit the **JACKPOT** and won 💰 **+${fmt(r.payout - r.bet)} OwiCoins**!`
-        : `✨ <@${u.id}> won 💰 **+${fmt(r.payout - r.bet)} OwiCoins**!`)
+        ? `🎉🎉 <@${u.id}> hit the **JACKPOT** and won <:owicoin:1537023515927117874> **+${fmt(r.payout - r.bet)} OwiCoins**!`
+        : `✨ <@${u.id}> won <:owicoin:1537023515927117874> **+${fmt(r.payout - r.bet)} OwiCoins**!`)
     : `💀 <@${u.id}> won nothing... better luck next time!`;
-  await edit(msg, board(reels, `${outcome}\n💰 balance: **${fmt(r.balance)} OwiCoins**`));
+  await edit(msg, board(reels, `${outcome}\n<:owicoin:1537023515927117874> balance: **${fmt(r.balance)} OwiCoins**`));
   if (r.payout > 0) for (const e of ["🎉", "✨"]) await msg?.react?.(e).catch(() => {});
 }

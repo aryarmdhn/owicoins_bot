@@ -36,14 +36,14 @@ export async function execute(interaction) {
     throw e;
   }
 
-  const head = `<@${u.id}> spent 💰 **${fmt(bet)} OwiCoins** and chose **${guess}**`;
+  const head = `<@${u.id}> spent <:owicoin:1537023515927117874> **${fmt(bet)} OwiCoins** and chose **${guess}**`;
   const msg = await interaction.reply({ content: `${head}\nThe coin spins... ${SPIN}` });
   await sleep(1500);
 
   const face = r.result === "heads" ? "HEADS" : "TAILS";
   const tail = r.win
-    ? `landed on ${FACE[r.result]} **${face}** and you won 💰 **+${fmt(r.payout - r.bet)} OwiCoins**!!`
-    : `landed on ${FACE[r.result]} **${face}**... you lost 💰 **${fmt(r.bet)} OwiCoins** :c`;
-  await edit(msg, `${head}\n${tail}\nbalance: 💰 ${fmt(r.balance)} OwiCoins`);
+    ? `landed on ${FACE[r.result]} **${face}** and you won <:owicoin:1537023515927117874> **+${fmt(r.payout - r.bet)} OwiCoins**!!`
+    : `landed on ${FACE[r.result]} **${face}**... you lost <:owicoin:1537023515927117874> **${fmt(r.bet)} OwiCoins** :c`;
+  await edit(msg, `${head}\n${tail}\nbalance: <:owicoin:1537023515927117874> ${fmt(r.balance)} OwiCoins`);
   await msg?.react?.(r.win ? "🎉" : "💀").catch(() => {});
 }

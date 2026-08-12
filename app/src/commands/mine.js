@@ -44,7 +44,7 @@ export async function execute(interaction) {
     bet = await resolveBet(u.id, u.username, interaction.options.getString("bet"));
     const g = await start(u.id, u.username, bet);
     const row = new ActionRowBuilder().addComponents(
-      new ButtonBuilder().setCustomId(`mine:${u.id}:cash`).setLabel("💰 Cash Out").setStyle(ButtonStyle.Primary).setDisabled(true)
+      new ButtonBuilder().setCustomId(`mine:${u.id}:cash`).setEmoji("1537023515927117874").setLabel("Cash Out").setStyle(ButtonStyle.Primary).setDisabled(true)
     );
     await interaction.reply({ content: mineText(g), components: [...boardComponents(u.id, g), row] });
   } catch (e) {

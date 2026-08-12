@@ -3,7 +3,7 @@ import { say, fmt } from "../lib/owo.js";
 
 const QUERIES = {
   richest: {
-    label: "💰 Richest",
+    label: "<:owicoin:1537023515927117874> Richest",
     sql: "SELECT username, coins AS score FROM users ORDER BY coins DESC LIMIT 10",
     unit: "OwiCoins",
   },

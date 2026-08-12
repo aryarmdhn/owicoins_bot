@@ -36,6 +36,6 @@ export async function execute(interaction) {
     : r.player === r.house
     ? `💀 **${r.player} vs ${r.house}** — tie goes to the house, lost **${fmt(r.bet)} OwiCoins**.`
     : `💀 **${r.player} vs ${r.house}** — house wins, lost **${fmt(r.bet)} OwiCoins**.`;
-  const done = await interaction.channel?.send?.({ content: `<@${u.id}> ${outcome}\n💰 balance: **${fmt(r.balance)} OwiCoins**`, allowedMentions: { parse: [] } }).catch(() => null);
+  const done = await interaction.channel?.send?.({ content: `<@${u.id}> ${outcome}\n<:owicoin:1537023515927117874> balance: **${fmt(r.balance)} OwiCoins**`, allowedMentions: { parse: [] } }).catch(() => null);
   await done?.react?.(r.win ? "🎉" : "💀").catch(() => {});
 }

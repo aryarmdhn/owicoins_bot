@@ -43,7 +43,7 @@ export async function execute(interaction) {
     .setThumbnail(target.displayAvatarURL({ size: 256 }))
     .setDescription(`**Level ${user.level}**\n\`${xpBar(Number(user.xp), need)}\`\n${fmt(user.xp)} / ${fmt(need)} XP`)
     .addFields(
-      { name: "💰 OwiCoins", value: fmt(user.coins), inline: true },
+      { name: "<:owicoin:1537023515927117874> OwiCoins", value: fmt(user.coins), inline: true },
       { name: "🎴 Collectibles", value: fmt(inv.count), inline: true },
       { name: "💎 Value", value: fmt(inv.value), inline: true },
       { name: "🔥 Daily Streak", value: `${user.daily_streak} day(s)`, inline: true }

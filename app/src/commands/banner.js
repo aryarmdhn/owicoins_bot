@@ -27,10 +27,10 @@ export async function execute(interaction) {
     if (count === 1) {
       const c = r.results[0];
       const hype = c.is_limited ? " 🌟 **LIMITED!**" : "";
-      content = `🎡 <@${u.id}> got ${EMOJI[c.rarity] ?? ""} **${c.name}** (${c.rarity})!${hype}\n💰 balance: **${fmt(r.balance)} OwiCoins**`;
+      content = `🎡 <@${u.id}> got ${EMOJI[c.rarity] ?? ""} **${c.name}** (${c.rarity})!${hype}\n<:owicoin:1537023515927117874> balance: **${fmt(r.balance)} OwiCoins**`;
     } else {
       const lines = r.results.map((c) => `${EMOJI[c.rarity] ?? ""} ${c.name}${c.is_limited ? " 🌟" : ""}`).join(" · ");
-      content = `🎡 <@${u.id}> pulled **${count}×** on ${season}:\n${lines}\n💰 balance: **${fmt(r.balance)} OwiCoins**`;
+      content = `🎡 <@${u.id}> pulled **${count}×** on ${season}:\n${lines}\n<:owicoin:1537023515927117874> balance: **${fmt(r.balance)} OwiCoins**`;
     }
     await msg?.edit?.({ content, allowedMentions: { parse: [] } }).catch(() => {});
     if (hasHigh) for (const e of ["🎉", "✨"]) await msg?.react?.(e).catch(() => {});

@@ -6,7 +6,7 @@ const HELP = [
   "🎴 **Gacha Bot — commands** (prefix `g`)",
   "`gdaily` — claim daily reward 🎁",
   "`gwork` — work for OwiCoins 💼",
-  "`gcoins` — check your balance 💰",
+  "`gcoins` — check your balance <:owicoin:1537023515927117874>",
   "`gpull <1-10>` — gacha pull 🎴",
   "`gbanner <1-10>` — pull limited banner 🎡",
   "`gboss` — attack the world boss ☠️",

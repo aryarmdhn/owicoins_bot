@@ -14,7 +14,7 @@ export async function execute(interaction) {
   }
   try {
     const r = await send(u, target, amount);
-    await say(interaction, `💸 <@${u.id}> sent **${fmt(amount)}** OwiCoins to <@${target.id}>!\n💰 your balance: **${fmt(r.balance)}**\n_📤 sends left today: ${r.sendsLeft}/3 · ${fmt(r.totalLeft)} OwiCoins left_`, ["💰"]);
+    await say(interaction, `💸 <@${u.id}> sent **${fmt(amount)}** OwiCoins to <@${target.id}>!\n<:owicoin:1537023515927117874> your balance: **${fmt(r.balance)}**\n_📤 sends left today: ${r.sendsLeft}/3 · ${fmt(r.totalLeft)} OwiCoins left_`, ["owicoin:1537023515927117874"]);
   } catch (e) {
     if (e instanceof InsufficientFunds) {
       await say(interaction, `😔 <@${u.id}> not enough OwiCoins! you have **${fmt(e.balance)}**`);

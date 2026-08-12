@@ -26,7 +26,7 @@ export async function execute(interaction) {
         .map((x, i) => {
           const rank = MEDAL[i] ?? `\`#${i + 1}\``;
           const pct = r.totalDmg > 0 ? Math.round((x.damage / r.totalDmg) * 100) : 0;
-          return `${rank} <@${x.discordId}> — ⚔️ ${fmt(x.damage)} dmg (${pct}%) → 💰 **${fmt(x.share)} OwiCoins**`;
+          return `${rank} <@${x.discordId}> — ⚔️ ${fmt(x.damage)} dmg (${pct}%) → <:owicoin:1537023515927117874> **${fmt(x.share)} OwiCoins**`;
         })
         .join("\n");
       await say(

@@ -22,7 +22,7 @@ async function inventoryOptions(discordId, username) {
 function sideText(side) {
   const items = [...side.items.values()].map((i) => `${EMOJI[i.rarity] ?? ""} ${i.name} ×${i.qty}`);
   const parts = [...items];
-  if (side.coins > 0) parts.push(`💰 ${fmt(side.coins)} OwiCoins`);
+  if (side.coins > 0) parts.push(`<:owicoin:1537023515927117874> ${fmt(side.coins)} OwiCoins`);
   return parts.length ? parts.join("\n") : "_nothing yet_";
 }
 
@@ -41,7 +41,7 @@ export function panel(s) {
       new StringSelectMenuBuilder().setCustomId(`ts:${s.id}:pick:b`).setPlaceholder(`${s.b.user.username} — add an item`).addOptions(s.optsB.length ? s.optsB : [{ label: "no items", value: "0" }]).setDisabled(!s.optsB.length)
     ),
     new ActionRowBuilder().addComponents(
-      new ButtonBuilder().setCustomId(`ts:${s.id}:coins`).setLabel("💰 Set My Coins").setStyle(ButtonStyle.Secondary),
+      new ButtonBuilder().setCustomId(`ts:${s.id}:coins`).setEmoji("1537023515927117874").setLabel("Set My Coins").setStyle(ButtonStyle.Secondary),
       new ButtonBuilder().setCustomId(`ts:${s.id}:clear`).setLabel("🗑️ Clear Mine").setStyle(ButtonStyle.Secondary)
     ),
     new ActionRowBuilder().addComponents(

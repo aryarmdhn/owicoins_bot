@@ -96,7 +96,7 @@ async function handleMine(interaction, [ownerId, action]) {
   if (action === "cash") {
     try {
       const r = await mineSvc.cashout(ownerId);
-      const t = mineText(g, { note: `💰 <@${ownerId}> cashed out **${r.revealed}** gems at **×${r.mult.toFixed(2)}** → **+${fmt(r.payout)} OwiCoins**!\n💰 balance: **${fmt(r.balance)}**` });
+      const t = mineText(g, { note: `<:owicoin:1537023515927117874> <@${ownerId}> cashed out **${r.revealed}** gems at **×${r.mult.toFixed(2)}** → **+${fmt(r.payout)} OwiCoins**!\n<:owicoin:1537023515927117874> balance: **${fmt(r.balance)}**` });
       await interaction.update({ content: t, components: boardComponents(ownerId, g, { reveal: true }), allowedMentions: { parse: [] } });
     } catch {
       await interaction.reply({ content: "No active game.", ephemeral: true });
@@ -116,13 +116,13 @@ async function handleMine(interaction, [ownerId, action]) {
 
   if (res.cleared) {
     const win = await mineSvc.autoWin(res.g);
-    const t = mineText(res.g, { note: `🏆 <@${ownerId}> cleared the whole board! **+${fmt(win.payout)} OwiCoins**!\n💰 balance: **${fmt(win.balance)}**` });
+    const t = mineText(res.g, { note: `🏆 <@${ownerId}> cleared the whole board! **+${fmt(win.payout)} OwiCoins**!\n<:owicoin:1537023515927117874> balance: **${fmt(win.balance)}**` });
     await interaction.update({ content: t, components: boardComponents(ownerId, res.g, { reveal: true }), allowedMentions: { parse: [] } });
     return;
   }
 
   const cashRow = new ActionRowBuilder().addComponents(
-    new ButtonBuilder().setCustomId(`mine:${ownerId}:cash`).setLabel("💰 Cash Out").setStyle(ButtonStyle.Primary).setDisabled(res.g.revealed.size === 0)
+    new ButtonBuilder().setCustomId(`mine:${ownerId}:cash`).setEmoji("1537023515927117874").setLabel("Cash Out").setStyle(ButtonStyle.Primary).setDisabled(res.g.revealed.size === 0)
   );
   const note = res.star ? `🌟✨ **LUCKY STAR!** multiplier boosted **×${res.starMult}**! ✨🌟` : null;
   await interaction.update({ content: mineText(res.g, { note }), components: [...boardComponents(ownerId, res.g), cashRow] });

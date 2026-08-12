@@ -16,7 +16,7 @@ export async function execute(interaction) {
     const r = await work(u.id, u.username);
     await say(
       interaction,
-      `${pick(LINES)} **${r.job}** and earned **+${fmt(r.reward)}** OwiCoins 💰\n<@${u.id}> balance: **${fmt(r.balance)}**`,
+      `${pick(LINES)} **${r.job}** and earned **+${fmt(r.reward)}** OwiCoins <:owicoin:1537023515927117874>\n<@${u.id}> balance: **${fmt(r.balance)}**`,
       ["💪"]
     );
   } catch (e) {

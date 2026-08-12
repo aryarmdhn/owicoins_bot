@@ -14,7 +14,7 @@ const DAILY_LIMIT = 3;
 const BLESSINGS = [
   { weight: 55, kind: "none", text: "the spirits stay silent… no blessing this time 🙏" },
   { weight: 20, kind: "luck", mult: 1.5, mins: 120, text: "a warm glow surrounds you! 🍀 **Luck ×1.5**" },
-  { weight: 12, kind: "coins", min: 500, max: 2000, text: "you found an offering! 💰" },
+  { weight: 12, kind: "coins", min: 500, max: 2000, text: "you found an offering! <:owicoin:1537023515927117874>" },
   { weight: 8, kind: "luck", mult: 2.0, mins: 60, text: "fortune smiles upon you! ✨ **Luck ×2.0**" },
   { weight: 4, kind: "luck", mult: 2.5, mins: 30, text: "the gods bless you! 🌟 **Luck ×2.5**" },
   { weight: 1, kind: "luck", mult: 3.0, mins: 60, text: "🎉 **DIVINE BLESSING!** ⚡ **Luck ×3.0**" },
