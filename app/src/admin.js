@@ -65,7 +65,9 @@ async function menuCoins() {
 async function menuLuck() {
   const user = await findUser("target");
   if (!user) return;
-  console.log("  1. set boost   2. clear   0. back");
+  const [[cur]] = await pool.query("SELECT rigged FROM user_luck WHERE user_id = ?", [user.id]);
+  console.log(`  rigged (auto-win): ${cur?.rigged ? "ON 🔴" : "off"}`);
+  console.log("  1. set boost   2. clear   3. toggle rigged auto-win   0. back");
   const c = await ask("> ");
   if (c === "1") {
     const mult = Number(await ask("  multiplier (e.g. 2.0): "));
@@ -81,6 +83,14 @@ async function menuLuck() {
   } else if (c === "2") {
     await pool.query("DELETE FROM user_luck WHERE user_id = ?", [user.id]);
     console.log("  ✓ cleared");
+  } else if (c === "3") {
+    const next = cur?.rigged ? 0 : 1;
+    await pool.query(
+      "INSERT INTO user_luck (user_id, multiplier, rigged, updated_at) VALUES (?, 1.00, ?, NOW()) " +
+        "ON DUPLICATE KEY UPDATE rigged = VALUES(rigged), updated_at = NOW()",
+      [user.id, next]
+    );
+    console.log(`  ✓ rigged auto-win ${next ? "ENABLED 🔴" : "disabled"}`);
   }
 }
 

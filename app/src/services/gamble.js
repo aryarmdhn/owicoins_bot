@@ -33,8 +33,8 @@ export async function play(discordId, username, bet, type, resolver) {
     const ref = `${type}:${user.id}:${Date.now()}`;
 
     await mutate(user.id, { type, amount: -bet, reference: `${ref}:bet`, xp: XP_PLAY }, conn);
-    const luck = await getLuck(user.id, conn);
-    const outcome = resolver(luck);
+    const { multiplier: luck, rigged } = await getLuck(user.id, conn);
+    const outcome = resolver(luck, rigged);
     let balance;
     if (outcome.payout > 0) {
       const r = await mutate(user.id, { type: `${type}_win`, amount: outcome.payout, reference: `${ref}:win`, xp: XP_WIN }, conn);

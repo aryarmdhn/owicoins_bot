@@ -136,4 +136,11 @@ let houseDice = 0;
 for (let i = 0; i < 200000; i++) houseDice += bet - diceRoll(bet, Math.random, 5).payout;
 assert.ok(houseDice > 0, "dice house edge holds even with max luck");
 
+// rigged (admin cheat) forces a win every time, on every game
+for (let i = 0; i < 5000; i++) {
+  assert.ok(coinflip("heads", bet, Math.random, 1, true).win, "rigged coinflip must win");
+  assert.ok(diceRoll(bet, Math.random, 1, true).win, "rigged dice must win");
+  assert.ok(slots(bet, Math.random, 1, true).payout > 0, "rigged slots must win");
+}
+
 console.log("all checks passed");

@@ -103,6 +103,7 @@ CREATE TABLE IF NOT EXISTS settings (
 CREATE TABLE IF NOT EXISTS user_luck (
     user_id BIGINT UNSIGNED PRIMARY KEY,
     multiplier DECIMAL(5,2) NOT NULL DEFAULT 1.00,
+    rigged TINYINT(1) NOT NULL DEFAULT 0,
     expires_at DATETIME NULL,
     updated_at DATETIME NOT NULL,
     FOREIGN KEY (user_id) REFERENCES users(id)

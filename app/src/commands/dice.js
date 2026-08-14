@@ -43,7 +43,7 @@ export async function execute(interaction) {
 
   let r;
   try {
-    r = await play(u.id, u.username, bet, "dice", (luck) => diceRoll(bet, Math.random, luck));
+    r = await play(u.id, u.username, bet, "dice", (luck, rigged) => diceRoll(bet, Math.random, luck, rigged));
   } catch (e) {
     if (e instanceof InsufficientFunds) return void (await say(interaction, `😔 <@${u.id}> not enough OwiCoins! you have **${fmt(e.balance)}**`));
     if (e instanceof BetError) return void (await say(interaction, `❌ <@${u.id}> ${e.message}`));

@@ -3,7 +3,7 @@ import { getOrCreate } from "../repositories/users.js";
 import { randomByRarity, addToInventory } from "../repositories/collectibles.js";
 import { mutate, InsufficientFunds } from "./economy.js";
 import { getSetting } from "./settings.js";
-import { rollRarity } from "../lib/rules.js";
+import { rollRarity, TIER_ORDER } from "../lib/rules.js";
 import { getLuck } from "./luck.js";
 
 export { InsufficientFunds };
@@ -22,7 +22,7 @@ export async function pull(discordId, username, count, season = null) {
     await conn.beginTransaction();
     const user = await getOrCreate(discordId, username, conn);
 
-    const luck = await getLuck(user.id, conn);
+    const { multiplier: luck, rigged } = await getLuck(user.id, conn);
 
     const payment = await mutate(
       user.id,
@@ -37,9 +37,18 @@ export async function pull(discordId, username, count, season = null) {
 
     const results = [];
     for (let i = 0; i < count; i++) {
-      const rarity = rollRarity(weights, luck);
-      let item = season ? await randomByRarity(rarity, conn, { season }) : null;
-      if (!item) item = await randomByRarity(rarity, conn);
+      let rarity, item;
+      if (rigged) {
+        // pick the highest tier that actually has a collectible, walking down
+        for (const tier of [...TIER_ORDER].reverse()) {
+          const found = season ? await randomByRarity(tier, conn, { season }) : await randomByRarity(tier, conn);
+          if (found) { rarity = tier; item = found; break; }
+        }
+      } else {
+        rarity = rollRarity(weights, luck);
+        item = season ? await randomByRarity(rarity, conn, { season }) : null;
+        if (!item) item = await randomByRarity(rarity, conn);
+      }
       if (!item) throw new Error(`no collectible for rarity ${rarity}`);
       await addToInventory(user.id, item.id, 1, conn);
       await conn.query(

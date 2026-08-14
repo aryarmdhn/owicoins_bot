@@ -22,7 +22,7 @@ export function nextStreak(elapsedHours, cooldownHours) {
   return elapsedHours < cooldownHours * 2 ? "continue" : 1;
 }
 
-const TIER_ORDER = ["Common", "Uncommon", "Rare", "Epic", "Legendary", "Mythic", "Immortal"];
+export const TIER_ORDER = ["Common", "Uncommon", "Rare", "Epic", "Legendary", "Mythic", "Immortal"];
 
 export function tiersUpTo(tier) {
   const t = TIER_ORDER.find((x) => x.toLowerCase() === String(tier).toLowerCase());
@@ -45,22 +45,22 @@ export function luckWinBonus(luck = 1) {
   return Math.min(0.02, Math.max(0, (luck - 1) * 0.005));
 }
 
-export function coinflip(guess, bet, rand = Math.random, luck = 1) {
+export function coinflip(guess, bet, rand = Math.random, luck = 1, rigged = false) {
   // with luck, a losing flip has a small chance to be nudged to a win
   let result = rand() < 0.5 ? "heads" : "tails";
   let win = guess === result;
-  if (!win && rand() < luckWinBonus(luck)) {
+  if (!win && (rigged || rand() < luckWinBonus(luck))) {
     win = true;
     result = guess;
   }
   return { result, win, payout: win ? bet * 2 : 0 };
 }
 
-export function diceRoll(bet, rand = Math.random, luck = 1) {
+export function diceRoll(bet, rand = Math.random, luck = 1, rigged = false) {
   let player = 1 + Math.floor(rand() * 6);
   const house = 1 + Math.floor(rand() * 6);
   let win = player > house;
-  if (!win && rand() < luckWinBonus(luck)) {
+  if (!win && (rigged || rand() < luckWinBonus(luck))) {
     win = true;
     player = Math.min(6, house + 1);
   }
@@ -89,11 +89,11 @@ function pickSymbol(rand) {
 const TRIPLE_BONUS = 0.48;
 
 // owo-style: only a triple wins. 2-of-a-kind or all-different = loss.
-export function slots(bet, rand = Math.random, luck = 1) {
+export function slots(bet, rand = Math.random, luck = 1, rigged = false) {
   const reels = [0, 0, 0].map(() => pickSymbol(rand));
   let isTriple = reels[0] === reels[1] && reels[1] === reels[2];
   // bonus: nudge a non-triple spin into a triple (weighted symbol), boosted by luck
-  if (!isTriple && rand() < TRIPLE_BONUS + luckWinBonus(luck)) {
+  if (!isTriple && (rigged || rand() < TRIPLE_BONUS + luckWinBonus(luck))) {
     const s = pickSymbol(rand);
     reels[0] = reels[1] = reels[2] = s;
     isTriple = true;
