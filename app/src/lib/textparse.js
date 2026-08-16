@@ -37,6 +37,18 @@ const SCHEMA = {
   spin: [],
   pray: [],
   luck: [],
+  hug: [{ name: "user", type: "user" }],
+  pat: [{ name: "user", type: "user" }],
+  slap: [{ name: "user", type: "user" }],
+  kiss: [{ name: "user", type: "user" }],
+  bonk: [{ name: "user", type: "user" }],
+  bite: [{ name: "user", type: "user" }],
+  poke: [{ name: "user", type: "user" }],
+  cuddle: [{ name: "user", type: "user" }],
+  tickle: [{ name: "user", type: "user" }],
+  yeet: [{ name: "user", type: "user" }],
+  beg: [],
+  cepekan: [{ name: "user", type: "user" }],
 };
 
 export function commandNames() {

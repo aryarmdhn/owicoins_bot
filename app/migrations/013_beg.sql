@@ -1,0 +1,2 @@
+ALTER TABLE users ADD COLUMN last_beg_at DATETIME NULL;
+ALTER TABLE users ADD COLUMN last_cepekan_at DATETIME NULL
