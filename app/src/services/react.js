@@ -13,15 +13,23 @@ export const ACTIONS = {
   yeet: { emoji: "🚀", verb: "yeets", counted: false },
 };
 
+const UA = { "User-Agent": "discord-gacha-bot (+https://nekos.best)" };
+
 async function gif(action) {
   try {
-    const r = await fetch(`https://nekos.best/api/v2/${action}`);
+    const r = await fetch(`https://nekos.best/api/v2/${action}`, { headers: UA });
     if (r.ok) return (await r.json())?.results?.[0]?.url ?? null;
-  } catch {}
+    console.warn(`gif nekos.best ${action}: HTTP ${r.status}`);
+  } catch (e) {
+    console.warn(`gif nekos.best ${action}:`, e.message);
+  }
   try {
-    const r = await fetch(`https://api.waifu.pics/sfw/${action}`);
+    const r = await fetch(`https://api.waifu.pics/sfw/${action}`, { headers: UA });
     if (r.ok) return (await r.json())?.url ?? null;
-  } catch {}
+    console.warn(`gif waifu.pics ${action}: HTTP ${r.status}`);
+  } catch (e) {
+    console.warn(`gif waifu.pics ${action}:`, e.message);
+  }
   return null;
 }
 
