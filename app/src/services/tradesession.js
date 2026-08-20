@@ -85,30 +85,26 @@ async function moveItem(fromId, toId, collectibleId, qty, conn) {
 
 export async function execute(s) {
   const conn = await pool.getConnection();
+  const nonce = Date.now();
   try {
     await conn.beginTransaction();
+    if (!s.a.items.size && !s.b.items.size && !s.a.coins && !s.b.coins) throw new TradeError("Nothing to trade — add an item or coins first.");
     const au = await getOrCreate(s.a.user.id, s.a.user.username, conn);
     const bu = await getOrCreate(s.b.user.id, s.b.user.username, conn);
-
-    // validate coins
-    const [[ab]] = await conn.query("SELECT coins FROM users WHERE id = ? FOR UPDATE", [au.id]);
-    const [[bb]] = await conn.query("SELECT coins FROM users WHERE id = ? FOR UPDATE", [bu.id]);
-    if (ab.coins < s.a.coins) throw new TradeError(`${s.a.user.username} doesn't have enough OwiCoins.`);
-    if (bb.coins < s.b.coins) throw new TradeError(`${s.b.user.username} doesn't have enough OwiCoins.`);
 
     // move items A -> B
     for (const it of s.a.items.values()) await moveItem(au.id, bu.id, it.id, it.qty, conn);
     // move items B -> A
     for (const it of s.b.items.values()) await moveItem(bu.id, au.id, it.id, it.qty, conn);
 
-    // coins
+    // coins (mutate checks funds; gift-only is fine since side.coins can be 0)
     if (s.a.coins > 0) {
-      await mutate(au.id, { type: "trade", amount: -s.a.coins, reference: `tsess:${s.id}:a-out` }, conn);
-      await mutate(bu.id, { type: "trade", amount: s.a.coins, reference: `tsess:${s.id}:a-in` }, conn);
+      await mutate(au.id, { type: "trade", amount: -s.a.coins, reference: `tsess:${s.id}:a-out:${nonce}` }, conn);
+      await mutate(bu.id, { type: "trade", amount: s.a.coins, reference: `tsess:${s.id}:a-in:${nonce}` }, conn);
     }
     if (s.b.coins > 0) {
-      await mutate(bu.id, { type: "trade", amount: -s.b.coins, reference: `tsess:${s.id}:b-out` }, conn);
-      await mutate(au.id, { type: "trade", amount: s.b.coins, reference: `tsess:${s.id}:b-in` }, conn);
+      await mutate(bu.id, { type: "trade", amount: -s.b.coins, reference: `tsess:${s.id}:b-out:${nonce}` }, conn);
+      await mutate(au.id, { type: "trade", amount: s.b.coins, reference: `tsess:${s.id}:b-in:${nonce}` }, conn);
     }
 
     await conn.commit();

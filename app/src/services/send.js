@@ -7,7 +7,7 @@ export class SendError extends Error {}
 export class SendLimit extends Error {}
 
 export const DAILY_COUNT = 3;
-export const DAILY_TOTAL = 100_000;
+export const DAILY_TOTAL = 300_000;
 
 export async function send(sender, receiver, amount) {
   if (!Number.isInteger(amount) || amount <= 0) throw new SendError("Amount must be a positive number.");

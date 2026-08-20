@@ -303,7 +303,7 @@ async function handleTradeSession(interaction, args) {
       await tsess.execute(s);
       await interaction.update({ content: "✅ **trade complete!** items & coins exchanged 🎉", components: [] });
     } catch (e) {
-      const msg = e instanceof tsess.TradeError ? e.message : "trade failed.";
+      const msg = e instanceof tsess.TradeError ? e.message : e?.needed != null ? "Not enough OwiCoins." : "trade failed.";
       s.a.confirmed = false; s.b.confirmed = false;
       await interaction.update({ content: `❌ ${msg}`, ...panel(s) });
     }
